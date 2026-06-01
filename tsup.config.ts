@@ -6,6 +6,7 @@ export default defineConfig({
   dts: true,
   clean: true,
   treeshake: true,
+  minify: true,
   // React is a peer dependency — never bundle it.
   external: ["react", "react-dom"],
 });

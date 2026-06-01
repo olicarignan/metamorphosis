@@ -4,10 +4,6 @@ A dependency-free **animated text component** — text that morphs character-by-
 character between values. This package ships the core `MorphController` plus a
 thin React adapter (`TextMorph`, `useTextMorph`).
 
-> Extracted from [`torph`](https://torph.lochie.me) by Lochie Axon (MIT). This
-> repo is the core + React build only — the upstream Vue and Svelte adapters are
-> not included.
-
 ## Install
 
 As a git dependency (no npm publish needed):

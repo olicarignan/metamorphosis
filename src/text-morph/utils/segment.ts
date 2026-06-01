@@ -3,6 +3,8 @@ export type Segment = {
   string: string;
 };
 
+const NBSP = " ";
+
 export function segmentText(
   value: string,
   locale: Intl.LocalesArgument,
@@ -13,57 +15,49 @@ export function segmentText(
     const segmenter = new Intl.Segmenter(locale, {
       granularity: byWord ? "word" : "grapheme",
     });
-    const iterator = segmenter.segment(value)[Symbol.iterator]();
-    return segmentsFromIntl(iterator);
+
+    const segments: Segment[] = [];
+    const seen = new Set<string>();
+    for (const { segment, index } of segmenter.segment(value)) {
+      if (segment === " ") {
+        segments.push({ id: `space-${index}`, string: NBSP });
+        continue;
+      }
+      pushSegment(segments, seen, segment, index);
+    }
+    return segments;
   }
 
   return segmentsFallback(value, byWord);
 }
 
-function segmentsFromIntl(
-  iterator: Intl.SegmentIterator<Intl.SegmentData>,
-): Segment[] {
-  return Array.from(iterator).reduce((acc, data) => {
-    if (data.segment === " ") {
-      return [...acc, { id: `space-${data.index}`, string: "\u00A0" }];
-    }
-
-    const existing = acc.find((x) => x.string === data.segment);
-    if (existing) {
-      return [
-        ...acc,
-        { id: `${data.segment}-${data.index}`, string: data.segment },
-      ];
-    }
-
-    return [
-      ...acc,
-      {
-        id: data.segment,
-        string: data.segment,
-      },
-    ];
-  }, [] as Segment[]);
-}
-
-function pushSegment(segments: Segment[], part: string, index: number) {
-  const existing = segments.find((x) => x.string === part);
-  segments.push(
-    existing
-      ? { id: `${part}-${index}`, string: part }
-      : { id: part, string: part },
-  );
+// First occurrence of a string keeps the bare string as its id; later
+// duplicates are disambiguated with their index. A Set tracks which strings
+// have already been claimed so this stays O(n) instead of scanning the array.
+function pushSegment(
+  segments: Segment[],
+  seen: Set<string>,
+  part: string,
+  index: number,
+) {
+  if (seen.has(part)) {
+    segments.push({ id: `${part}-${index}`, string: part });
+  } else {
+    seen.add(part);
+    segments.push({ id: part, string: part });
+  }
 }
 
 function segmentsFallback(value: string, byWord: boolean): Segment[] {
   const parts = byWord ? value.split(" ") : value.split("");
   const segments: Segment[] = [];
+  const seen = new Set<string>();
 
   parts.forEach((part, index) => {
     if (byWord && index > 0) {
-      segments.push({ id: `space-${index}`, string: "\u00A0" });
+      segments.push({ id: `space-${index}`, string: NBSP });
     }
-    pushSegment(segments, part, index);
+    pushSegment(segments, seen, part, index);
   });
 
   return segments;

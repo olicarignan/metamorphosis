@@ -2,8 +2,6 @@
   "name": "text-morph",
   "version": "0.0.9",
   "description": "Dependency-free animated text component (text morphing) — core controller + React adapter.",
-  "license": "MIT",
-  "author": "Lochie Axon",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
