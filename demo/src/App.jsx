@@ -3,6 +3,7 @@ import { TextMorph } from "../../src/react";
 import { spring } from "../../src/text-morph/utils/spring";
 
 const WORDS = ["morph", "transform", "animate", "interpolate", "metamorphose"];
+const NUMBERS = ["1,240", "15:04", "3.141592", "27°", "-15"];
 
 const SPRING_WORDS = ["bounce", "spring", "wobble", "settle", "snap"];
 
@@ -16,13 +17,15 @@ const PRESETS = [
 
 export default function App() {
   const [wordIndex, setWordIndex] = useState(0);
-  const [count, setCount] = useState(1240);
+  const [numberIndex, setNumberIndex] = useState(0);
+
   const [text, setText] = useState("type to morph me");
 
   // Cycle the hero word on a timer.
   useEffect(() => {
     const id = setInterval(() => {
       setWordIndex((i) => (i + 1) % WORDS.length);
+      setNumberIndex((i) => (i + 1) % NUMBERS.length);
     }, 1800);
     return () => clearInterval(id);
   }, []);
@@ -31,48 +34,49 @@ export default function App() {
     <main className="page">
       <div className="container">
         <header className="page__header">
-          <h1>metamorphosis</h1>
-          <p>Text that morphs character-by-character between values.</p>
+          <h1>Metamorphosis</h1>
+          <p>Animated text that morphs between values.</p>
         </header>
 
-        {/* A single word that cycles on a timer */}
-        <section className="demo">
-          <span className="demo__label">cycling words</span>
-          <TextMorph className="demo__hero">{WORDS[wordIndex]}</TextMorph>
-        </section>
+        <div className="demo-grid">
+          <section className="demo">
+            <div className="demo__container">
+              <TextMorph className="demo__text">{WORDS[wordIndex]}</TextMorph>
+            </div>
+          </section>
+          <section className="demo">
+            <div className="demo__container">
+              <TextMorph className="demo__text">
+                {NUMBERS[numberIndex]}
+              </TextMorph>
+            </div>
+          </section>
+        </div>
 
-        {/* Numbers re-morph as digits change */}
-        <section className="demo">
-          <span className="demo__label">numbers</span>
-          <TextMorph className="demo__number">
-            {count.toLocaleString("en-US")}
-          </TextMorph>
-          <div className="demo__controls">
-            <button onClick={() => setCount((c) => c - 137)}>−137</button>
-            <button onClick={() => setCount((c) => c + 137)}>+137</button>
-            <button onClick={() => setCount(Math.floor(Math.random() * 99999))}>
-              random
-            </button>
-          </div>
-        </section>
+        <div className="demo-grid">
+          {/* Spring presets — same word, different physics */}
+          <SpringPresets />
+        </div>
 
-        {/* Spring presets — same word, different physics */}
-        <SpringPresets />
+        <div className="demo-grid">
+          {/* Live stiffness / damping playground */}
+          <SpringPlayground />
+        </div>
 
-        {/* Live stiffness / damping playground */}
-        <SpringPlayground />
-
-        {/* Morphs live as you type */}
-        <section className="demo">
-          <span className="demo__label">free text</span>
-          <TextMorph className="demo__text">{text || " "}</TextMorph>
-          <input
-            className="demo__input"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            placeholder="Type to morph…"
-          />
-        </section>
+        <div className="demo-grid">
+          {/* Morphs live as you type */}
+          <section className="demo">
+            <div className="demo__container">
+              <TextMorph className="demo__text">{text || " "}</TextMorph>
+            </div>
+            <input
+              className="demo__input"
+              value={text}
+              onChange={(e) => setText(e.target.value)}
+              placeholder="Type to morph…"
+            />
+          </section>
+        </div>
 
         <section className="page__install">
           <h2>Use it in your project</h2>
@@ -119,26 +123,27 @@ function SpringPresets() {
 
   return (
     <section className="demo">
-      <span className="demo__label">spring presets</span>
-      <TextMorph
-        className="demo__hero"
-        ease={{ stiffness: preset.stiffness, damping: preset.damping }}
-      >
-        {SPRING_WORDS[wordIndex]}
-      </TextMorph>
-      <div className="demo__controls">
-        {PRESETS.map((p, i) => (
-          <button
-            key={p.name}
-            className={i === active ? "is-active" : undefined}
-            onClick={() => {
-              setActive(i);
-              setWordIndex((w) => (w + 1) % SPRING_WORDS.length);
-            }}
-          >
-            {p.name}
-          </button>
-        ))}
+      <div className="demo__container wide">
+        <TextMorph
+          className="demo__text"
+          ease={{ stiffness: preset.stiffness, damping: preset.damping }}
+        >
+          {SPRING_WORDS[wordIndex]}
+        </TextMorph>
+        <div className="demo__controls">
+          {PRESETS.map((p, i) => (
+            <button
+              key={p.name}
+              className={i === active ? "is-active" : undefined}
+              onClick={() => {
+                setActive(i);
+                setWordIndex((w) => (w + 1) % SPRING_WORDS.length);
+              }}
+            >
+              {p.name}
+            </button>
+          ))}
+        </div>
       </div>
     </section>
   );
@@ -156,7 +161,7 @@ function SpringPlayground() {
   // Cycle words continuously so the current spring is always on display.
   useEffect(() => {
     const id = setInterval(() => {
-      setWordIndex((i) => (i + 1) % SPRING_WORDS.length);
+      setWordIndex((i) => (i + 1) % WORDS.length);
     }, 1500);
     return () => clearInterval(id);
   }, []);
@@ -170,14 +175,17 @@ function SpringPlayground() {
   // Damping ratio — < 1 oscillates (bouncy), >= 1 settles without overshoot.
   const zeta = damping / (2 * Math.sqrt(stiffness));
   const behavior =
-    zeta < 1 ? "underdamped — overshoots & bounces" : "critically/over-damped — settles smoothly";
+    zeta < 1
+      ? "underdamped — overshoots & bounces"
+      : "critically/over-damped — settles smoothly";
 
   return (
     <section className="demo">
-      <span className="demo__label">spring playground</span>
-      <TextMorph className="demo__hero" ease={{ stiffness, damping }}>
-        {SPRING_WORDS[wordIndex]}
-      </TextMorph>
+      <div className="demo__container wide">
+        <TextMorph className="demo__text" ease={{ stiffness, damping }}>
+          {WORDS[wordIndex]}
+        </TextMorph>
+      </div>
 
       <div className="playground">
         <label className="playground__row">

@@ -13,10 +13,11 @@
   --color-black: #131718;
   --color-grey: #63635e;
   --border-color: #bfbfbf;
-  --bg: #f4f3f0;
+  --bg: #fff;
+  --bg-grey: #f5f5f5;
+  --hover-grey: #dcdcdc;
 
   --font-sans: "m", Helvetica, sans-serif;
-  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   color-scheme: light;
 }
@@ -77,6 +78,10 @@ p {
   padding: clamp(3.2rem, 6vw, 9.6rem) 2rem 6.4rem;
 }
 
+.page__header {
+  margin-bottom: 10rem;
+}
+
 .container {
   width: 100%;
   max-width: 72rem;
@@ -84,20 +89,29 @@ p {
 }
 
 /* Demo blocks */
-.demo {
-  margin-top: 6.4rem;
-  padding-top: 3.2rem;
-  border-top: 1px solid var(--border-color);
+
+.demo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(32rem, 1fr));
+  gap: 1.2rem;
+  margin-top: 1.2rem;
 }
 
-.demo__label {
-  display: block;
-  margin-bottom: 1.6rem;
-  font-family: var(--font-mono);
-  font-size: 1.2rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-grey);
+.demo {
+  .demo__container {
+    width: 100%;
+    aspect-ratio: 1/1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--bg-grey);
+    border-radius: 1.6rem;
+    position: relative;
+  }
+
+  .wide {
+    aspect-ratio: 16/9;
+  }
 }
 
 .demo__hero,
@@ -119,26 +133,30 @@ p {
 }
 
 .demo__text {
-  font-size: clamp(2.8rem, 6vw, 4.8rem);
-  font-weight: 400;
+  font-size: 2.625rem;
+  font-weight: 425;
 }
 
 /* Controls */
 .demo__controls {
+  position: absolute;
+  bottom: 1.2rem;
+  left: 0;
+  right: 0;
   display: flex;
-  gap: 0.8rem;
+  justify-content: center;
+  gap: 0.4rem;
   margin-top: 2.4rem;
   flex-wrap: wrap;
 }
 
 .demo__controls button {
-  font-family: var(--font-mono);
   font-size: 1.4rem;
-  padding: 0.8rem 1.6rem;
-  border: 1px solid var(--border-color);
+  padding: 0.4rem 0.8rem;
+  border: none;
   border-radius: 999px;
-  background: transparent;
-  color: var(--color-black);
+  background: var(--bg);
+  color: var(--text-color);
   cursor: pointer;
   transition:
     background 0.2s ease,
@@ -146,15 +164,13 @@ p {
 }
 
 .demo__controls button:hover {
-  background: var(--color-black);
-  border-color: var(--color-black);
-  color: var(--bg);
+  background: var(--hover-grey);
+  color: var(--color-black);
 }
 
 .demo__controls button.is-active {
-  background: var(--color-black);
-  border-color: var(--color-black);
-  color: var(--bg);
+  background: var(--hover-grey);
+  color: var(--color-black);
 }
 
 /* Spring playground */
@@ -173,7 +189,6 @@ p {
 }
 
 .playground__name {
-  font-family: var(--font-mono);
   font-size: 1.2rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
@@ -181,7 +196,6 @@ p {
 }
 
 .playground__value {
-  font-family: var(--font-mono);
   font-size: 1.4rem;
   color: var(--color-black);
   text-align: right;
@@ -229,7 +243,6 @@ p {
   align-items: baseline;
   gap: 1.6rem 2.4rem;
   margin-top: 0.8rem;
-  font-family: var(--font-mono);
   font-size: 1.3rem;
   color: var(--color-grey);
 }
@@ -282,7 +295,6 @@ p {
 }
 
 .page__install code {
-  font-family: var(--font-mono);
   font-size: 0.85em;
   color: var(--color-black);
 }
