@@ -1,4 +1,5 @@
 const MAX_FADE_DURATION = 150;
+const MORPH_BLUR = 1; // px of blur applied as segments fade in/out
 
 function fadeDuration(duration: number, fraction: number): number {
   return Math.min(duration * fraction, MAX_FADE_DURATION);
@@ -56,6 +57,7 @@ export function animateExit(
   const fadeAnimation = child.animate(
     {
       opacity: 0,
+      filter: `blur(${MORPH_BLUR}px)`,
       offset: 1,
     },
     {
@@ -102,7 +104,10 @@ export function animateEnterOrPersist(
 
   if (startOpacity < 1) {
     child.animate(
-      [{ opacity: startOpacity }, { opacity: 1 }],
+      [
+        { opacity: startOpacity, filter: `blur(${MORPH_BLUR}px)` },
+        { opacity: 1, filter: "blur(0px)" },
+      ],
       {
         duration: fadeDuration(duration, isNew ? 0.5 : 0.25),
         delay: isNew ? fadeDuration(duration, 0.25) : 0,
