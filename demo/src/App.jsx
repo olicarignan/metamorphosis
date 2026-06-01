@@ -1,7 +1,18 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { TextMorph } from "../../src/react";
+import { spring } from "../../src/text-morph/utils/spring";
 
 const WORDS = ["morph", "transform", "animate", "interpolate", "metamorphose"];
+
+const SPRING_WORDS = ["bounce", "spring", "wobble", "settle", "snap"];
+
+// A few characterful spring presets to showcase the physics.
+const PRESETS = [
+  { name: "gentle", stiffness: 120, damping: 20 },
+  { name: "bouncy", stiffness: 180, damping: 9 },
+  { name: "wobbly", stiffness: 110, damping: 4 },
+  { name: "stiff", stiffness: 320, damping: 26 },
+];
 
 export default function App() {
   const [wordIndex, setWordIndex] = useState(0);
@@ -20,7 +31,7 @@ export default function App() {
     <main className="page">
       <div className="container">
         <header className="page__header">
-          <h1>text-morph</h1>
+          <h1>metamorphosis</h1>
           <p>Text that morphs character-by-character between values.</p>
         </header>
 
@@ -45,10 +56,16 @@ export default function App() {
           </div>
         </section>
 
+        {/* Spring presets — same word, different physics */}
+        <SpringPresets />
+
+        {/* Live stiffness / damping playground */}
+        <SpringPlayground />
+
         {/* Morphs live as you type */}
         <section className="demo">
           <span className="demo__label">free text</span>
-          <TextMorph className="demo__text">{text || " "}</TextMorph>
+          <TextMorph className="demo__text">{text || " "}</TextMorph>
           <input
             className="demo__input"
             value={text}
@@ -65,7 +82,7 @@ export default function App() {
           </pre>
           <p>Then render any text or number through it:</p>
           <pre>
-            <code>{`import { TextMorph } from "text-morph/react";
+            <code>{`import { TextMorph } from "metamorphosis/react";
 
 <TextMorph>{value}</TextMorph>;`}</code>
           </pre>
@@ -78,5 +95,127 @@ export default function App() {
         </section>
       </div>
     </main>
+  );
+}
+
+/**
+ * Showcases the same word morphing under different spring presets. Pass a
+ * `{ stiffness, damping }` object straight to the `ease` prop and metamorphosis
+ * derives a `linear()` easing + duration from the spring physics.
+ */
+function SpringPresets() {
+  const [active, setActive] = useState(0);
+  const [wordIndex, setWordIndex] = useState(0);
+
+  const preset = PRESETS[active];
+
+  // Auto-advance the word so the spring is always being demonstrated.
+  useEffect(() => {
+    const id = setInterval(() => {
+      setWordIndex((i) => (i + 1) % SPRING_WORDS.length);
+    }, 1600);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <section className="demo">
+      <span className="demo__label">spring presets</span>
+      <TextMorph
+        className="demo__hero"
+        ease={{ stiffness: preset.stiffness, damping: preset.damping }}
+      >
+        {SPRING_WORDS[wordIndex]}
+      </TextMorph>
+      <div className="demo__controls">
+        {PRESETS.map((p, i) => (
+          <button
+            key={p.name}
+            className={i === active ? "is-active" : undefined}
+            onClick={() => {
+              setActive(i);
+              setWordIndex((w) => (w + 1) % SPRING_WORDS.length);
+            }}
+          >
+            {p.name}
+          </button>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Live playground: drag stiffness / damping and watch the morph respond in
+ * real time. The spring config is passed straight through the `ease` prop.
+ */
+function SpringPlayground() {
+  const [stiffness, setStiffness] = useState(180);
+  const [damping, setDamping] = useState(12);
+  const [wordIndex, setWordIndex] = useState(0);
+
+  // Cycle words continuously so the current spring is always on display.
+  useEffect(() => {
+    const id = setInterval(() => {
+      setWordIndex((i) => (i + 1) % SPRING_WORDS.length);
+    }, 1500);
+    return () => clearInterval(id);
+  }, []);
+
+  // Derive the same easing/duration metamorphosis will use, for the readout.
+  const { duration } = useMemo(
+    () => spring({ stiffness, damping }),
+    [stiffness, damping],
+  );
+
+  // Damping ratio — < 1 oscillates (bouncy), >= 1 settles without overshoot.
+  const zeta = damping / (2 * Math.sqrt(stiffness));
+  const behavior =
+    zeta < 1 ? "underdamped — overshoots & bounces" : "critically/over-damped — settles smoothly";
+
+  return (
+    <section className="demo">
+      <span className="demo__label">spring playground</span>
+      <TextMorph className="demo__hero" ease={{ stiffness, damping }}>
+        {SPRING_WORDS[wordIndex]}
+      </TextMorph>
+
+      <div className="playground">
+        <label className="playground__row">
+          <span className="playground__name">stiffness</span>
+          <input
+            type="range"
+            min={20}
+            max={400}
+            step={5}
+            value={stiffness}
+            onChange={(e) => setStiffness(Number(e.target.value))}
+          />
+          <span className="playground__value">{stiffness}</span>
+        </label>
+
+        <label className="playground__row">
+          <span className="playground__name">damping</span>
+          <input
+            type="range"
+            min={2}
+            max={40}
+            step={1}
+            value={damping}
+            onChange={(e) => setDamping(Number(e.target.value))}
+          />
+          <span className="playground__value">{damping}</span>
+        </label>
+
+        <div className="playground__readout">
+          <span>
+            duration <strong>{duration}ms</strong>
+          </span>
+          <span>
+            ζ <strong>{zeta.toFixed(2)}</strong>
+          </span>
+          <span className="playground__behavior">{behavior}</span>
+        </div>
+      </div>
+    </section>
   );
 }

@@ -1,3 +1,13 @@
+/* Text styles — from oliviercarignan (vitrine) */
+@font-face {
+  font-family: m;
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+  src: url("/fonts/MonumentGrotesk/ABCMonumentGroteskVariable.woff2")
+    format("woff2");
+}
+
 :root {
   /* Colours — from oliviercarignan */
   --color-black: #131718;
@@ -5,7 +15,7 @@
   --border-color: #bfbfbf;
   --bg: #f4f3f0;
 
-  --font-sans: Helvetica, "Helvetica Neue", Arial, sans-serif;
+  --font-sans: "m", Helvetica, sans-serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 
   color-scheme: light;
@@ -36,15 +46,21 @@ body {
   background: var(--bg);
   overflow-x: hidden;
   font-size: 1.75rem;
+  font-weight: 375;
   letter-spacing: -0.01em;
 }
 
 h1,
-h2 {
+h2,
+h3,
+h4,
+h5,
+h6 {
   margin: 0;
-  font-weight: 500;
+  font-weight: 425;
   color: var(--color-black);
   letter-spacing: -0.0175em;
+  font-size: 1.75rem;
 }
 
 p {
@@ -65,14 +81,6 @@ p {
   width: 100%;
   max-width: 72rem;
   margin: 0 auto;
-}
-
-.page__header h1 {
-  font-size: 2.4rem;
-}
-
-.page__header p {
-  margin-top: 0.5lh;
 }
 
 /* Demo blocks */
@@ -141,6 +149,99 @@ p {
   background: var(--color-black);
   border-color: var(--color-black);
   color: var(--bg);
+}
+
+.demo__controls button.is-active {
+  background: var(--color-black);
+  border-color: var(--color-black);
+  color: var(--bg);
+}
+
+/* Spring playground */
+.playground {
+  margin-top: 3.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+.playground__row {
+  display: grid;
+  grid-template-columns: 8rem 1fr 4rem;
+  align-items: center;
+  gap: 1.6rem;
+}
+
+.playground__name {
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-grey);
+}
+
+.playground__value {
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  color: var(--color-black);
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.playground__row input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 2px;
+  background: var(--border-color);
+  border-radius: 999px;
+  outline: none;
+  cursor: pointer;
+}
+
+.playground__row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 1.8rem;
+  height: 1.8rem;
+  border-radius: 50%;
+  background: var(--color-black);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.playground__row input[type="range"]::-webkit-slider-thumb:active {
+  transform: scale(1.2);
+}
+
+.playground__row input[type="range"]::-moz-range-thumb {
+  width: 1.8rem;
+  height: 1.8rem;
+  border: none;
+  border-radius: 50%;
+  background: var(--color-black);
+  cursor: pointer;
+}
+
+.playground__readout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 1.6rem 2.4rem;
+  margin-top: 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 1.3rem;
+  color: var(--color-grey);
+}
+
+.playground__readout strong {
+  color: var(--color-black);
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.playground__behavior {
+  color: var(--color-grey);
 }
 
 .demo__input {

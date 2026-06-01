@@ -1,9 +1,9 @@
 {
-  "name": "text-morph-demo",
+  "name": "metamorphosis-demo",
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "description": "Local playground for text-morph — imports the library source directly.",
+  "description": "Local playground for metamorphosis — imports the library source directly.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

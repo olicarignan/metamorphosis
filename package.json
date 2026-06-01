@@ -1,5 +1,5 @@
 {
-  "name": "text-morph",
+  "name": "metamorphosis",
   "version": "0.0.9",
   "description": "Dependency-free animated text component (text morphing) — core controller + React adapter.",
   "main": "dist/index.js",

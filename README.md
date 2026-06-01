@@ -1,4 +1,4 @@
-# text-morph
+# metamorphosis
 
 A dependency-free **animated text component** — text that morphs character-by-
 character between values. This package ships the core `MorphController` plus a
@@ -21,7 +21,7 @@ Peer deps (for the React adapter): `react`, `react-dom` (>=18).
 ## Usage (React)
 
 ```jsx
-import { TextMorph } from "text-morph/react";
+import { TextMorph } from "metamorphosis/react";
 
 <TextMorph as="h3">{title}</TextMorph>;
 ```
@@ -34,7 +34,7 @@ import { TextMorph } from "text-morph/react";
 The framework-agnostic core is also exported from the root:
 
 ```js
-import { MorphController } from "text-morph";
+import { MorphController } from "metamorphosis";
 ```
 
 ## Develop
