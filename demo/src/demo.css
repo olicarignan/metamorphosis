@@ -653,6 +653,12 @@ a {
   color: var(--color-black);
 }
 
+.install__link {
+  font-size: 1.4rem;
+  line-height: 1.6;
+  margin-top: 2lh;
+}
+
 .page__install pre {
   margin-top: 0.5lh;
   padding: 1.6rem 2rem;
@@ -668,7 +674,6 @@ a {
 }
 
 .credits {
-  margin-top: 4.8rem;
   display: flex;
   flex-direction: column;
   align-items: flex-start;

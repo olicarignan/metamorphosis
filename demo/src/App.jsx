@@ -148,14 +148,18 @@ export default function App() {
 
 <TextMorph>{value}</TextMorph>;`}</code>
           </pre>
+          <p className="install__link">
+            For documentation, check the project on{" "}
+            <a
+              href="https://github.com/olicarignan/metamorphosis"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Github
+            </a>
+          </p>
         </section>
         <section className="credits">
-          <IconLink
-            href="https://github.com/olicarignan/metamorphosis"
-            icon={<GitHubIcon />}
-          >
-            GitHub
-          </IconLink>
           <div className="credit">
             <span>Made by</span>
             <IconLink href="https://oliviercarignan.com">
