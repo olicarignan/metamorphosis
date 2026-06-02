@@ -4,16 +4,22 @@ import { spring } from "../../src/text-morph/utils/spring";
 import { Slider } from "./Slider";
 import { IconLink } from "./IconLink";
 
-const WORDS = ["morph", "transform", "animate", "interpolate", "metamorphose"];
-const NUMBERS = ["1,240", "15:04", "3.141592", "27°", "-15"];
+const WORDS = [
+  "transform",
+  "animate",
+  "mutate",
+  "metamorphose",
+  "shift",
+  "permute",
+];
+const NUMBERS = ["1,240", "15:04", "3.141592", "27°", "$17 per month"];
 
 const SPRING_WORDS = ["bounce", "spring", "wobble", "settle", "snap"];
 
 // A few characterful spring presets to showcase the physics.
 const PRESETS = [
   { name: "gentle", stiffness: 120, damping: 20 },
-  { name: "bouncy", stiffness: 180, damping: 9 },
-  { name: "wobbly", stiffness: 110, damping: 4 },
+  { name: "bouncy", stiffness: 180, damping: 16 },
   { name: "stiff", stiffness: 320, damping: 26 },
 ];
 
@@ -325,10 +331,14 @@ function SpringPlayground() {
         <div className="dialkit-root demo__panel" data-theme="light">
           <div className="playground__readout">
             <span>
-              duration <strong>{duration}ms</strong>
+              duration{" "}
+              <span className="playground__readout-value">{duration}ms</span>
             </span>
             <span>
-              ζ <strong>{zeta.toFixed(2)}</strong>
+              ζ{" "}
+              <span className="playground__readout-value">
+                {zeta.toFixed(2)}
+              </span>
             </span>
           </div>
 

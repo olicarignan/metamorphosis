@@ -1,10 +1,87 @@
 /* Text styles — from oliviercarignan (vitrine) */
+
+/* Suisse Int'l — static cuts mapped to weight ranges so the demo's
+   fractional weights (e.g. 375, 425, 450) resolve to the nearest cut. */
 @font-face {
-  font-family: m;
+  font-family: s;
   font-style: normal;
-  font-weight: 100 900;
+  font-weight: 100 374;
   font-display: swap;
-  src: url("/fonts/MonumentGrotesk/ABCMonumentGroteskVariable.woff2")
+  src: url("/fonts/SuisseIntl/SuisseIntl%20Light.woff2") format("woff2");
+}
+@font-face {
+  font-family: s;
+  font-style: normal;
+  font-weight: 375 449;
+  font-display: swap;
+  src: url("/fonts/SuisseIntl/Suisse%20Intl%20Regular.woff2") format("woff2");
+}
+@font-face {
+  font-family: s;
+  font-style: normal;
+  font-weight: 450 499;
+  font-display: swap;
+  src: url("/fonts/SuisseIntl/SuisseIntl%20Book.woff2") format("woff2");
+}
+@font-face {
+  font-family: s;
+  font-style: normal;
+  font-weight: 500 549;
+  font-display: swap;
+  src: url("/fonts/SuisseIntl/SuisseIntl%20Medium.woff2") format("woff2");
+}
+@font-face {
+  font-family: s;
+  font-style: normal;
+  font-weight: 550 649;
+  font-display: swap;
+  src: url("/fonts/SuisseIntl/Suisse%20Intl%20SemiBold.woff2") format("woff2");
+}
+@font-face {
+  font-family: s;
+  font-style: normal;
+  font-weight: 650 900;
+  font-display: swap;
+  src: url("/fonts/SuisseIntl/Suisse%20Intl%20Bold.woff2") format("woff2");
+}
+
+@font-face {
+  font-family: s;
+  font-style: italic;
+  font-weight: 100 374;
+  font-display: swap;
+  src: url("/fonts/SuisseIntl/Suisse%20Intl%20Light%20Italic.woff2")
+    format("woff2");
+}
+@font-face {
+  font-family: s;
+  font-style: italic;
+  font-weight: 375 449;
+  font-display: swap;
+  src: url("/fonts/SuisseIntl/Suisse%20Intl%20Italic.woff2") format("woff2");
+}
+@font-face {
+  font-family: s;
+  font-style: italic;
+  font-weight: 450 549;
+  font-display: swap;
+  src: url("/fonts/SuisseIntl/Suisse%20Intl%20Book%20Italic.woff2")
+    format("woff2");
+}
+@font-face {
+  font-family: s;
+  font-style: italic;
+  font-weight: 550 649;
+  font-display: swap;
+  src: url("/fonts/SuisseIntl/Suisse%20Intl%20SemiBold%20Italic.woff2")
+    format("woff2");
+}
+@font-face {
+  font-family: s;
+  font-style: italic;
+  font-weight: 650 900;
+  font-display: swap;
+  src: url("/fonts/SuisseIntl/Suisse%20Intl%20Bold%20Italic.woff2")
     format("woff2");
 }
 
@@ -17,7 +94,7 @@
   --bg-grey: #f5f5f5;
   --hover-grey: #dcdcdc;
 
-  --font-sans: "m", Helvetica, sans-serif;
+  --font-sans: "s", Helvetica, sans-serif;
   --font-mono:
     ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono",
     monospace;
@@ -334,7 +411,7 @@ a {
   top: 50%;
   transform: translateY(calc(-50% - 0.5px));
   font-size: 13px;
-  font-weight: 425;
+  font-weight: 450;
   color: var(--dial-text-label);
   pointer-events: none;
   transition: color 0.15s;
@@ -428,13 +505,12 @@ a {
   align-items: baseline;
   justify-content: center;
   gap: 0.4rem 1.6rem;
-  font-size: 1.2rem;
+  font-size: 1.4rem;
   color: var(--color-grey);
 }
 
-.playground__readout strong {
+.playground__readout-value {
   color: var(--color-black);
-  font-weight: 500;
   font-variant-numeric: tabular-nums;
 }
 
