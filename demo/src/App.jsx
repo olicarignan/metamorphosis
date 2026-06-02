@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { TextMorph } from "../../src/react";
 import { spring } from "../../src/text-morph/utils/spring";
 import { Slider } from "./Slider";
+import { IconLink } from "./IconLink";
 
 const WORDS = ["morph", "transform", "animate", "interpolate", "metamorphose"];
 const NUMBERS = ["1,240", "15:04", "3.141592", "27°", "-15"];
@@ -105,7 +106,8 @@ export default function App() {
         </section>
         <section className="credits">
           <span>
-            Made by <a href="https://oliviercarignan.com">Olivier Carignan</a>
+            Made by{" "}
+            <IconLink href="https://oliviercarignan.com">Olivier Carignan</IconLink>
           </span>
         </section>
       </div>
