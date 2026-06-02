@@ -19,10 +19,10 @@ const PRESETS = [
 
 // Install command per package manager — the morph target for the install tabs.
 const INSTALL = [
-  { id: "pnpm", cmd: "pnpm i github:olicarignan/text-morph" },
-  { id: "npm", cmd: "npm i github:olicarignan/text-morph" },
-  { id: "bun", cmd: "bun i github:olicarignan/text-morph" },
-  { id: "yarn", cmd: "yarn add github:olicarignan/text-morph" },
+  { id: "pnpm", cmd: "pnpm i github:olicarignan/metamorphosis" },
+  { id: "npm", cmd: "npm i github:olicarignan/metamorphosis" },
+  { id: "bun", cmd: "bun i github:olicarignan/metamorphosis" },
+  { id: "yarn", cmd: "yarn add github:olicarignan/metamorphosis" },
 ];
 
 export default function App() {
