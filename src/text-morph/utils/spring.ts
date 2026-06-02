@@ -25,7 +25,14 @@ function springPosition(
     );
   }
 
-  // Overdamped (includes near-critically-damped)
+  // Critically damped: the overdamped formula divides by zero here (r1 === r2),
+  // so use the closed form. A small epsilon also avoids numerical blow-up when
+  // zeta is just above 1 and the roots are nearly equal.
+  if (zeta - 1 < 1e-4) {
+    return 1 - (1 + omega0 * t) * Math.exp(-omega0 * t);
+  }
+
+  // Overdamped
   const s = Math.sqrt(zeta * zeta - 1);
   const r1 = -omega0 * (zeta + s);
   const r2 = -omega0 * (zeta - s);

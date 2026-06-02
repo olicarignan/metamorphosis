@@ -37,6 +37,7 @@ export const DEFAULT_TEXT_MORPH_OPTIONS = {
   duration: 400,
   scale: true,
   ease: "cubic-bezier(0.22, 1, 0.36, 1)",
+  granularity: "auto",
   disabled: false,
   respectReducedMotion: true,
 } as const satisfies Omit<TextMorphOptions, "element">;
@@ -130,7 +131,11 @@ export class TextMorph {
     const oldWidth = oldRect.width;
     const oldHeight = oldRect.height;
 
-    const segments = segmentText(value, this.options.locale!);
+    const segments = segmentText(
+      value,
+      this.options.locale!,
+      this.options.granularity,
+    );
 
     this.prevMeasures = measure(this.element);
     const oldChildren = Array.from(element.children) as HTMLElement[];

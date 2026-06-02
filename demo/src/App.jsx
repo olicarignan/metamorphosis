@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { TextMorph } from "../../src/react";
 import { spring } from "../../src/text-morph/utils/spring";
+import { Slider } from "./Slider";
 
 const WORDS = ["morph", "transform", "animate", "interpolate", "metamorphose"];
 const NUMBERS = ["1,240", "15:04", "3.141592", "27°", "-15"];
@@ -19,7 +20,7 @@ export default function App() {
   const [wordIndex, setWordIndex] = useState(0);
   const [numberIndex, setNumberIndex] = useState(0);
 
-  const [text, setText] = useState("type to morph me");
+  const [text, setText] = useState("Type to morph");
 
   // Cycle the hero word on a timer.
   useEffect(() => {
@@ -66,15 +67,21 @@ export default function App() {
         <div className="demo-grid">
           {/* Morphs live as you type */}
           <section className="demo">
-            <div className="demo__container">
-              <TextMorph className="demo__text">{text || " "}</TextMorph>
+            <div className="demo__container wide">
+              <TextMorph className="demo__text" granularity="grapheme">
+                {text || " "}
+              </TextMorph>
+
+              <div className="dialkit-root demo__dock" data-theme="light">
+                <input
+                  className="dialkit-text-field"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  placeholder="Type to morph…"
+                  aria-label="Text to morph"
+                />
+              </div>
             </div>
-            <input
-              className="demo__input"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              placeholder="Type to morph…"
-            />
           </section>
         </div>
 
@@ -174,10 +181,6 @@ function SpringPlayground() {
 
   // Damping ratio — < 1 oscillates (bouncy), >= 1 settles without overshoot.
   const zeta = damping / (2 * Math.sqrt(stiffness));
-  const behavior =
-    zeta < 1
-      ? "underdamped — overshoots & bounces"
-      : "critically/over-damped — settles smoothly";
 
   return (
     <section className="demo">
@@ -185,43 +188,35 @@ function SpringPlayground() {
         <TextMorph className="demo__text" ease={{ stiffness, damping }}>
           {WORDS[wordIndex]}
         </TextMorph>
-      </div>
 
-      <div className="playground">
-        <label className="playground__row">
-          <span className="playground__name">stiffness</span>
-          <input
-            type="range"
-            min={20}
-            max={400}
-            step={5}
-            value={stiffness}
-            onChange={(e) => setStiffness(Number(e.target.value))}
-          />
-          <span className="playground__value">{stiffness}</span>
-        </label>
+        <div className="dialkit-root demo__panel" data-theme="light">
+          <div className="playground__readout">
+            <span>
+              duration <strong>{duration}ms</strong>
+            </span>
+            <span>
+              ζ <strong>{zeta.toFixed(2)}</strong>
+            </span>
+          </div>
 
-        <label className="playground__row">
-          <span className="playground__name">damping</span>
-          <input
-            type="range"
-            min={2}
-            max={40}
-            step={1}
-            value={damping}
-            onChange={(e) => setDamping(Number(e.target.value))}
-          />
-          <span className="playground__value">{damping}</span>
-        </label>
-
-        <div className="playground__readout">
-          <span>
-            duration <strong>{duration}ms</strong>
-          </span>
-          <span>
-            ζ <strong>{zeta.toFixed(2)}</strong>
-          </span>
-          <span className="playground__behavior">{behavior}</span>
+          <div className="demo__dials">
+            <Slider
+              label="Stiffness"
+              value={stiffness}
+              min={20}
+              max={400}
+              step={5}
+              onChange={setStiffness}
+            />
+            <Slider
+              label="Damping"
+              value={damping}
+              min={2}
+              max={40}
+              step={1}
+              onChange={setDamping}
+            />
+          </div>
         </div>
       </div>
     </section>

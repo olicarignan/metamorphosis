@@ -1,3 +1,5 @@
+import type { Granularity } from "../types";
+
 export type Segment = {
   id: string;
   string: string;
@@ -8,8 +10,14 @@ const NBSP = " ";
 export function segmentText(
   value: string,
   locale: Intl.LocalesArgument,
+  granularity: Granularity = "auto",
 ): Segment[] {
-  const byWord = value.includes(" ");
+  const byWord =
+    granularity === "word"
+      ? true
+      : granularity === "grapheme"
+        ? false
+        : value.includes(" ");
 
   if (typeof Intl.Segmenter !== "undefined") {
     const segmenter = new Intl.Segmenter(locale, {

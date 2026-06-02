@@ -79,7 +79,7 @@ p {
 }
 
 .page__header {
-  margin-bottom: 10rem;
+  margin-bottom: 8rem;
 }
 
 .container {
@@ -173,77 +173,254 @@ p {
   color: var(--color-black);
 }
 
-/* Spring playground */
-.playground {
-  margin-top: 3.2rem;
+/* Text field docked at the bottom — same width/centering as the playground dials */
+.demo__dock {
+  position: absolute;
+  bottom: 1.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(34rem, calc(100% - 3.2rem));
+}
+
+/* Playground panel — readout + dials, centered and narrower than the container */
+.demo__panel {
+  position: absolute;
+  bottom: 1.6rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: min(34rem, calc(100% - 3.2rem));
   display: flex;
   flex-direction: column;
-  gap: 1.6rem;
+  gap: 1rem;
 }
 
-.playground__row {
-  display: grid;
-  grid-template-columns: 8rem 1fr 4rem;
+/* Compact the dials inside the panel. The extra [data-theme] in the selector
+   raises specificity above the theme block below, which also sets this var on
+   the same element — otherwise source order would keep it at 36px. */
+.dialkit-root[data-theme="light"].demo__panel {
+  --dial-row-height: 28px;
+}
+
+/* Smaller handle so the shorter track still reads as a pill, not a full bar */
+.demo__panel .dialkit-slider-handle {
+  height: 16px;
+}
+
+.demo__dials {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+/* On smaller viewports the docked controls span the container width
+   (the 34rem cap only applies once there's room to spare), and the
+   otherwise-square demos take the wide aspect ratio while stacked */
+@media (max-width: 700px) {
+  .demo__panel,
+  .demo__dock {
+    width: calc(100% - 3.2rem);
+  }
+
+  .demo .demo__container {
+    aspect-ratio: 16/9;
+  }
+}
+
+/* ── Dialkit slider — ported verbatim from ../dialkit, light theme ── */
+.dialkit-root[data-theme="light"] {
+  --dial-surface: rgba(0, 0, 0, 0.05);
+  --dial-surface-hover: rgba(0, 0, 0, 0.09);
+  --dial-surface-active: rgba(0, 0, 0, 0.11);
+  --dial-surface-subtle: rgba(0, 0, 0, 0.06);
+
+  --dial-text-label: rgba(0, 0, 0, 0.6);
+  --dial-text-focus: #000000;
+  --dial-text-primary: rgba(0, 0, 0, 0.9);
+  --dial-text-tertiary: rgba(0, 0, 0, 0.35);
+
+  --dial-border-hover: rgba(0, 0, 0, 0.13);
+
+  --dial-radius: 8px;
+  --dial-row-height: 36px;
+
+  /* Use the metamorphosis demo's typography rather than dialkit's Inter stack */
+  font-family: var(--font-sans);
+  font-weight: 425;
+  letter-spacing: -0.01em;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.dialkit-slider-wrapper {
+  position: relative;
+  height: var(--dial-row-height);
+}
+
+.dialkit-slider {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  user-select: none;
+  overflow: hidden;
+  background: var(--dial-surface);
+  border-radius: var(--dial-radius);
+  touch-action: none;
+}
+
+.dialkit-slider-hashmarks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.dialkit-slider-hashmark {
+  position: absolute;
+  top: 50%;
+  width: 1px;
+  height: 8px;
+  border-radius: 999px;
+  transform: translateX(-50%) translateY(-50%);
+  background: rgba(255, 255, 255, 0);
+  transition: background 200ms;
+}
+
+.dialkit-slider-active .dialkit-slider-hashmark {
+  background: var(--dial-border-hover);
+}
+
+.dialkit-slider-active .dialkit-slider-value {
+  color: var(--dial-text-focus);
+}
+
+.dialkit-slider-fill {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  background: var(--dial-surface-active);
+  border-radius: var(--dial-radius);
+  transition: background 0.15s;
+  pointer-events: none;
+}
+
+.dialkit-slider-active .dialkit-slider-fill {
+  background: var(--dial-border-hover);
+}
+
+.dialkit-slider-handle {
+  position: absolute;
+  top: 50%;
+  width: 3px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--dial-text-primary);
+  pointer-events: none;
+}
+
+.dialkit-slider-label {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(calc(-50% - 0.5px));
+  font-size: 13px;
+  font-weight: 425;
+  color: var(--dial-text-label);
+  pointer-events: none;
+  transition: color 0.15s;
+  display: inline-flex;
   align-items: center;
-  gap: 1.6rem;
 }
 
-.playground__name {
-  font-size: 1.2rem;
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--color-grey);
-}
-
-.playground__value {
-  font-size: 1.4rem;
-  color: var(--color-black);
-  text-align: right;
+.dialkit-slider-value {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(calc(-50% + 0.5px));
+  font-size: 13px;
+  font-weight: 425;
+  letter-spacing: inherit;
+  color: var(--dial-text-label);
+  pointer-events: auto;
+  transition:
+    color 0.15s,
+    border-color 0.15s;
+  border-bottom: 1px solid transparent;
+  padding-bottom: 1px;
   font-variant-numeric: tabular-nums;
 }
 
-.playground__row input[type="range"] {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 100%;
-  height: 2px;
-  background: var(--border-color);
-  border-radius: 999px;
-  outline: none;
-  cursor: pointer;
+.dialkit-slider-value-editable {
+  border-bottom-color: var(--dial-text-label);
 }
 
-.playground__row input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 1.8rem;
-  height: 1.8rem;
-  border-radius: 50%;
-  background: var(--color-black);
-  cursor: pointer;
-  transition: transform 0.15s ease;
-}
-
-.playground__row input[type="range"]::-webkit-slider-thumb:active {
-  transform: scale(1.2);
-}
-
-.playground__row input[type="range"]::-moz-range-thumb {
-  width: 1.8rem;
-  height: 1.8rem;
+.dialkit-slider-input {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4ch;
+  min-width: 3ch;
+  max-width: 6ch;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 425;
+  letter-spacing: inherit;
+  font-variant-numeric: tabular-nums;
+  color: var(--dial-text-label);
+  background: transparent;
   border: none;
-  border-radius: 50%;
-  background: var(--color-black);
-  cursor: pointer;
+  border-bottom: 1px solid var(--dial-text-label);
+  padding: 0 0 1px 0;
+  outline: none;
+  text-align: right;
+}
+
+.dialkit-slider-input:focus {
+  color: var(--dial-text-focus);
+}
+
+/* Dialkit-style text field — a docked control sharing the dial surface look,
+   with the rounded, hover/focus feel of the spring-preset buttons */
+.dialkit-text-field {
+  width: 100%;
+  height: var(--dial-row-height);
+  padding: 0 10px;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 425;
+  letter-spacing: inherit;
+  color: var(--dial-text-focus);
+  background: var(--dial-surface);
+  border: none;
+  border-radius: var(--dial-radius);
+  outline: none;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.dialkit-text-field:hover {
+  background: var(--dial-surface-hover);
+}
+
+.dialkit-text-field:focus {
+  background: var(--dial-surface-active);
+}
+
+.dialkit-text-field::placeholder {
+  color: var(--dial-text-tertiary);
 }
 
 .playground__readout {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  gap: 1.6rem 2.4rem;
-  margin-top: 0.8rem;
-  font-size: 1.3rem;
+  justify-content: center;
+  gap: 0.4rem 1.6rem;
+  font-size: 1.2rem;
   color: var(--color-grey);
 }
 
@@ -251,32 +428,6 @@ p {
   color: var(--color-black);
   font-weight: 500;
   font-variant-numeric: tabular-nums;
-}
-
-.playground__behavior {
-  color: var(--color-grey);
-}
-
-.demo__input {
-  display: block;
-  width: 100%;
-  margin-top: 2.4rem;
-  padding: 1.2rem 0;
-  border: none;
-  border-bottom: 1px solid var(--border-color);
-  background: transparent;
-  font-family: var(--font-sans);
-  font-size: 1.75rem;
-  color: var(--color-black);
-}
-
-.demo__input:focus {
-  outline: none;
-  border-bottom-color: var(--color-black);
-}
-
-.demo__input::placeholder {
-  color: var(--color-grey);
 }
 
 /* Usage */
