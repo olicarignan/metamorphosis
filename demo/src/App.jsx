@@ -12,9 +12,35 @@ const WORDS = [
   "shift",
   "permute",
 ];
-const NUMBERS = ["1,240", "15:04", "3.141592", "27°", "$17 per month"];
-
 const SPRING_WORDS = ["bounce", "spring", "wobble", "settle", "snap"];
+
+// Live clock — formats we rotate through while it ticks each second.
+const CLOCK_FORMATS = [
+  // Jun 2 2026
+  (d) =>
+    d
+      .toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      })
+      .replace(",", ""),
+  // 10:38:02
+  (d) => d.toLocaleTimeString("en-GB", { hour12: false }),
+  // Jun 2 10:38 AM
+  (d) => {
+    const date = d.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+    });
+    const time = d.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+      hour12: true,
+    });
+    return `${date} ${time}`;
+  },
+];
 
 // A few characterful spring presets to showcase the physics.
 const PRESETS = [
@@ -33,7 +59,8 @@ const INSTALL = [
 
 export default function App() {
   const [wordIndex, setWordIndex] = useState(0);
-  const [numberIndex, setNumberIndex] = useState(0);
+  const [now, setNow] = useState(() => new Date());
+  const [clockFormat, setClockFormat] = useState(0);
 
   const [text, setText] = useState("Type to morph");
 
@@ -41,9 +68,21 @@ export default function App() {
   useEffect(() => {
     const id = setInterval(() => {
       setWordIndex((i) => (i + 1) % WORDS.length);
-      setNumberIndex((i) => (i + 1) % NUMBERS.length);
     }, 1800);
     return () => clearInterval(id);
+  }, []);
+
+  // Tick the live clock every second, and rotate its format less often.
+  useEffect(() => {
+    const tick = setInterval(() => setNow(new Date()), 1000);
+    const fmt = setInterval(
+      () => setClockFormat((i) => (i + 1) % CLOCK_FORMATS.length),
+      4000,
+    );
+    return () => {
+      clearInterval(tick);
+      clearInterval(fmt);
+    };
   }, []);
 
   return (
@@ -62,8 +101,8 @@ export default function App() {
           </section>
           <section className="demo">
             <div className="demo__container">
-              <TextMorph className="demo__text">
-                {NUMBERS[numberIndex]}
+              <TextMorph className="demo__text" granularity="grapheme">
+                {CLOCK_FORMATS[clockFormat](now)}
               </TextMorph>
             </div>
           </section>
