@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { TextMorph } from "../../src/react";
 import { spring } from "../../src/text-morph/utils/spring";
 import { Slider } from "./Slider";
@@ -14,6 +14,14 @@ const PRESETS = [
   { name: "bouncy", stiffness: 180, damping: 9 },
   { name: "wobbly", stiffness: 110, damping: 4 },
   { name: "stiff", stiffness: 320, damping: 26 },
+];
+
+// Install command per package manager — the morph target for the install tabs.
+const INSTALL = [
+  { id: "pnpm", cmd: "pnpm i github:olicarignan/text-morph" },
+  { id: "npm", cmd: "npm i github:olicarignan/text-morph" },
+  { id: "bun", cmd: "bun i github:olicarignan/text-morph" },
+  { id: "yarn", cmd: "yarn add github:olicarignan/text-morph" },
 ];
 
 export default function App() {
@@ -86,28 +94,137 @@ export default function App() {
         </div>
 
         <section className="page__install">
-          <h2>Use it in your project</h2>
-          <p>Install the package:</p>
-          <pre>
-            <code>pnpm add github:olicarignan/text-morph</code>
-          </pre>
-          <p>Then render any text or number through it:</p>
+          <h2>Install</h2>
+          <InstallTabs />
+          <h3>Usage</h3>
           <pre>
             <code>{`import { TextMorph } from "metamorphosis/react";
 
 <TextMorph>{value}</TextMorph>;`}</code>
           </pre>
-          <p>
-            Tune it with <code>duration</code>, <code>ease</code> (a CSS easing
-            string or a spring config), <code>scale</code>, <code>locale</code>,
-            and <code>onAnimationComplete</code>. See <code>README.md</code> for
-            the full prop list.
-          </p>
+        </section>
+        <section className="credits">
+          <span>
+            Made by <a href="https://oliviercarignan.com">Olivier Carignan</a>
+          </span>
         </section>
       </div>
     </main>
   );
 }
+
+/**
+ * Install snippet with package-manager tabs. The command is wrapped in a
+ * TextMorph so switching tabs morphs one command into the next, and a copy
+ * button morphs from a copy icon to a checkmark once the command is copied.
+ */
+function InstallTabs() {
+  const [active, setActive] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const resetTimer = useRef(null);
+
+  useEffect(() => () => clearTimeout(resetTimer.current), []);
+
+  const copyCommand = async () => {
+    try {
+      await navigator.clipboard.writeText(INSTALL[active].cmd);
+      setCopied(true);
+      clearTimeout(resetTimer.current);
+      resetTimer.current = setTimeout(() => setCopied(false), 1500);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
+  return (
+    <div className="install">
+      <div
+        className="install__tabs"
+        role="tablist"
+        aria-label="Package manager"
+      >
+        {INSTALL.map((m, i) => (
+          <button
+            key={m.id}
+            type="button"
+            role="tab"
+            aria-selected={i === active}
+            className={i === active ? "is-active" : undefined}
+            onClick={() => {
+              setActive(i);
+              setCopied(false);
+            }}
+          >
+            {m.id}
+          </button>
+        ))}
+      </div>
+
+      <div className="install__command">
+        <div className="install__scroll">
+          <TextMorph className="install__code" granularity="grapheme">
+            {INSTALL[active].cmd}
+          </TextMorph>
+        </div>
+
+        <button
+          type="button"
+          className={`install__copy${copied ? " is-copied" : ""}`}
+          onClick={copyCommand}
+          aria-label={copied ? "Copied" : "Copy install command"}
+        >
+          <span className="install__copy-icons">
+            <span className="install__copy-icon install__copy-icon--copy">
+              <CopyIcon />
+            </span>
+            <span className="install__copy-icon install__copy-icon--check">
+              <CheckIcon />
+            </span>
+          </span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+const CopyIcon = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 12 12"
+    fill="none"
+    aria-hidden="true"
+  >
+    <path
+      d="M10 4H5C4.44772 4 4 4.44772 4 5V10C4 10.5523 4.44772 11 5 11H10C10.5523 11 11 10.5523 11 10V5C11 4.44772 10.5523 4 10 4Z"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+    <path
+      d="M2 8C1.45 8 1 7.55 1 7V2C1 1.45 1.45 1 2 1H7C7.55 1 8 1.45 8 2"
+      stroke="currentColor"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
+
+const CheckIcon = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M20 6 9 17l-5-5" />
+  </svg>
+);
 
 /**
  * Showcases the same word morphing under different spring presets. Pass a

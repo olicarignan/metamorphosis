@@ -18,6 +18,9 @@
   --hover-grey: #dcdcdc;
 
   --font-sans: "m", Helvetica, sans-serif;
+  --font-mono:
+    ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono",
+    monospace;
 
   color-scheme: light;
 }
@@ -66,6 +69,16 @@ h6 {
 
 p {
   margin: 0;
+}
+
+a {
+  text-decoration: none;
+  color: var(--color-black);
+  transition: text-decoration 0.3s ease;
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 :focus:not(:focus-visible) {
@@ -433,19 +446,138 @@ p {
 /* Usage */
 .page__install {
   margin-top: 9.6rem;
-  padding-top: 3.2rem;
-  border-top: 1px solid var(--border-color);
 }
 
 .page__install h2 {
   font-size: 1.75rem;
 }
 
+.page__install h3 {
+  margin-top: 1lh;
+}
+
 .page__install p {
   margin-top: 1lh;
 }
 
+/* Install tabs */
+.install {
+  margin-top: 0.5lh;
+}
+
+.install__tabs {
+  display: flex;
+  gap: 1.6rem;
+  margin-bottom: 0.8rem;
+}
+
+.install__tabs button {
+  font-family: var(--font-sans);
+  font-size: 1.4rem;
+  font-weight: 375;
+  letter-spacing: -0.01em;
+  padding: 0.4rem 0;
+  border: none;
+  background: transparent;
+  color: var(--color-grey);
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.install__tabs button:hover {
+  color: var(--color-black);
+}
+
+.install__tabs button.is-active {
+  color: var(--color-black);
+  font-weight: 475;
+}
+
+.install__command {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  padding: 1rem 1rem 1rem 2rem;
+  border-radius: 1.6rem;
+  background: var(--bg-grey);
+}
+
+.install__scroll {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.install__code {
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  line-height: 1.6;
+  color: var(--color-black);
+}
+
+/* Copy button — copy icon morphs to a checkmark on success */
+.install__copy {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3.2rem;
+  height: 3.2rem;
+  padding: 0;
+  border: none;
+  border-radius: 0.8rem;
+  background: transparent;
+  color: var(--color-grey);
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease;
+}
+
+.install__copy:hover {
+  background: var(--hover-grey);
+  color: var(--color-black);
+}
+
+.install__copy.is-copied {
+  color: var(--color-black);
+}
+
+.install__copy-icons {
+  position: relative;
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.install__copy-icon {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform-origin: center;
+  transition:
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1),
+    opacity 0.25s ease;
+}
+
+.install__copy-icon--check {
+  transform: scale(0) rotate(-45deg);
+  opacity: 0;
+}
+
+.install__copy.is-copied .install__copy-icon--copy {
+  transform: scale(0) rotate(45deg);
+  opacity: 0;
+}
+
+.install__copy.is-copied .install__copy-icon--check {
+  transform: scale(1) rotate(0deg);
+  opacity: 1;
+}
+
 .page__install code {
+  font-family: var(--font-mono);
   font-size: 0.85em;
   color: var(--color-black);
 }
@@ -453,9 +585,8 @@ p {
 .page__install pre {
   margin-top: 0.5lh;
   padding: 1.6rem 2rem;
-  border: 1px solid var(--border-color);
-  border-radius: 12px;
-  background: color-mix(in srgb, var(--color-black) 4%, transparent);
+  border-radius: 1.6rem;
+  background: var(--bg-grey);
   overflow-x: auto;
 }
 
@@ -463,4 +594,10 @@ p {
   font-size: 1.4rem;
   line-height: 1.6;
   white-space: pre;
+}
+
+.credits {
+  margin-top: 4.8rem;
+  text-align: center;
+  font-size: 1.4rem;
 }
