@@ -309,6 +309,10 @@ a {
   .demo .demo__container {
     aspect-ratio: 16/9;
   }
+
+  .demo .demo__container:has(.demo__controls, .demo__panel, .demo__dock) {
+    aspect-ratio: 1/1;
+  }
 }
 
 /* ── Dialkit slider — ported verbatim from ../dialkit, light theme ── */
