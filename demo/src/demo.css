@@ -87,12 +87,12 @@
 
 :root {
   /* Colours — from oliviercarignan */
-  --color-black: #131718;
-  --color-grey: #63635e;
-  --border-color: #bfbfbf;
-  --bg: #fff;
-  --bg-grey: #f5f5f5;
-  --hover-grey: #dcdcdc;
+  --color-black: #091d08;
+  --color-grey: #6c7860;
+  --border-color: #1f3c14;
+  --bg: #fcfdf6;
+  --bg-grey: #f0f2e8;
+  --hover-grey: #1f3c14;
 
   --font-sans: "s", Helvetica, sans-serif;
   --font-mono:
@@ -250,12 +250,12 @@ a {
 
 .demo__controls button:hover {
   background: var(--hover-grey);
-  color: var(--color-black);
+  color: var(--bg);
 }
 
 .demo__controls button.is-active {
   background: var(--hover-grey);
-  color: var(--color-black);
+  color: var(--bg);
 }
 
 /* Text field docked at the bottom — same width/centering as the playground dials */
@@ -607,11 +607,15 @@ a {
 
 .install__copy:hover {
   background: var(--hover-grey);
-  color: var(--color-black);
+  color: var(--bg);
 }
 
 .install__copy.is-copied {
   color: var(--color-black);
+}
+
+.install__copy.is-copied:hover {
+  color: var(--bg);
 }
 
 .install__copy-icons {
