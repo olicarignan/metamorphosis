@@ -84,6 +84,118 @@
   src: url("/fonts/SuisseIntl/Suisse%20Intl%20Bold%20Italic.woff2")
     format("woff2");
 }
+@font-face {
+  font-family: d;
+  font-style: normal;
+  font-weight: 100;
+  font-display: swap;
+  src: url("/fonts/DaVinci/TRJNDaVinci-Thin.woff") format("woff");
+}
+@font-face {
+  font-family: d;
+  font-style: italic;
+  font-weight: 100;
+  font-display: swap;
+  src: url("/fonts/DaVinci/TRJNDaVinciItalic-Thin.woff") format("woff");
+}
+@font-face {
+  font-family: d;
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("/fonts/DaVinci/TRJNDaVinci-Light.woff") format("woff");
+}
+@font-face {
+  font-family: d;
+  font-style: italic;
+  font-weight: 300;
+  font-display: swap;
+  src: url("/fonts/DaVinci/TRJNDaVinciItalic-Light.woff") format("woff");
+}
+@font-face {
+  font-family: d;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/DaVinci/TRJNDaVinci-Regular.woff") format("woff");
+}
+@font-face {
+  font-family: d;
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/DaVinci/TRJNDaVinciItalic-Regular.woff") format("woff");
+}
+@font-face {
+  font-family: d;
+  font-style: normal;
+  font-weight: 450;
+  font-display: swap;
+  src: url("/fonts/DaVinci/TRJNDaVinci-Display.woff") format("woff");
+}
+@font-face {
+  font-family: d;
+  font-style: italic;
+  font-weight: 450;
+  font-display: swap;
+  src: url("/fonts/DaVinci/TRJNDaVinciItalic-Display.woff") format("woff");
+}
+@font-face {
+  font-family: d;
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/DaVinci/TRJNDaVinci-Medium.woff") format("woff");
+}
+@font-face {
+  font-family: d;
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/DaVinci/TRJNDaVinciItalic-Medium.woff") format("woff");
+}
+@font-face {
+  font-family: d;
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/DaVinci/TRJNDaVinci-Semibold.woff") format("woff");
+}
+@font-face {
+  font-family: d;
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/DaVinci/TRJNDaVinciItalic-Semibold.woff") format("woff");
+}
+@font-face {
+  font-family: d;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/DaVinci/TRJNDaVinci-Bold.woff") format("woff");
+}
+@font-face {
+  font-family: d;
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/DaVinci/TRJNDaVinciItalic-Bold.woff") format("woff");
+}
+@font-face {
+  font-family: d;
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url("/fonts/DaVinci/TRJNDaVinci-Heavy.woff") format("woff");
+}
+@font-face {
+  font-family: d;
+  font-style: italic;
+  font-weight: 800;
+  font-display: swap;
+  src: url("/fonts/DaVinci/TRJNDaVinciItalic-Heavy.woff") format("woff");
+}
 
 :root {
   /* Colours — from oliviercarignan */
@@ -93,8 +205,11 @@
   --bg: #fcfdf6;
   --bg-grey: #f0f2e8;
   --hover-grey: #1f3c14;
+  /* Wireframe dashed border for the demo cells */
+  --wireframe: rgba(108, 120, 96, 0.45);
 
   --font-sans: "s", Helvetica, sans-serif;
+  --font-display: "d", Times New Roman, serif;
   --font-mono:
     ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono",
     monospace;
@@ -137,10 +252,11 @@ h3,
 h4,
 h5,
 h6 {
+  font-family: var(--font-display);
   margin: 0;
-  font-weight: 425;
+  font-weight: 450;
   color: var(--color-black);
-  letter-spacing: -0.0175em;
+  letter-spacing: -0.04em;
   font-size: 1.75rem;
 }
 
@@ -165,6 +281,15 @@ a {
 
 .page__header {
   margin-bottom: 8rem;
+  text-align: center;
+
+  h1 {
+    font-style: normal;
+    font-size: 3rem;
+    font-feature-settings: "dlig" on;
+    letter-spacing: -0.04em;
+    font-weight: 500;
+  }
 }
 
 .container {
@@ -173,35 +298,154 @@ a {
   margin: 0 auto;
 }
 
-/* Demo blocks */
+/* Demo blocks — a wireframe grid: flush cells separated only by dashed rules,
+   with the outer frame bleeding past the container and fading into the page. */
 
-.demo-grid {
+.demos {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(32rem, 1fr));
-  gap: 1.2rem;
-  margin-top: 1.2rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0;
+  margin-top: 4rem;
+  /* How far the frame/rules bleed past the grid before fading. The vertical
+     rules reach this far above the grid (bleed-y top), and the horizontal rules
+     are capped to overhang by the same amount on each side. */
+  --bleed-reach: 13rem;
 }
 
-.demo {
-  .demo__container {
-    width: 100%;
-    aspect-ratio: 1/1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background: var(--bg-grey);
-    border-radius: 1.6rem;
-    position: relative;
-  }
+/* Full-width demos by default; the first two sit side-by-side in row 1. */
+.demos > section {
+  grid-column: 1 / -1;
+}
+.demos > section:nth-of-type(1),
+.demos > section:nth-of-type(2) {
+  grid-column: auto;
+}
 
-  .wide {
-    aspect-ratio: 16/9;
-  }
+.demos > section {
+  position: relative;
+}
+
+/* Internal horizontal dividers — full-bleed dashed rules between rows that
+   fade into the page at their ends, matching the outer frame. Off by default;
+   switched on above each full-width demo (and every cell once stacked). */
+.demos > section::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  max-width: calc(100% + 2 * var(--bleed-reach));
+  border-top: 1px dashed var(--wireframe);
+  pointer-events: none;
+  opacity: 0;
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 22%,
+    #000 78%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 22%,
+    #000 78%,
+    transparent
+  );
+}
+.demos > section:nth-of-type(n + 3)::before {
+  opacity: 1;
+}
+
+/* Row-1 vertical divider — drawn on the left edge of the second cell so it
+   doesn't disturb the grid flow. Stays within the row (no upward bleed) so the
+   hero is left clear in the center. */
+.demos > section:nth-of-type(2)::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  border-left: 1px dashed var(--wireframe);
+  pointer-events: none;
+}
+
+/* Outer frame — full-bleed dashed lines that fade out at their ends. bleed-x
+   carries the top/bottom rules (running past the container left↔right); bleed-y
+   carries the left/right rules (running past it top↕bottom). */
+.demos__bleed-x,
+.demos__bleed-y {
+  position: absolute;
+  pointer-events: none;
+  z-index: -1;
+}
+.demos__bleed-x {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100vw;
+  max-width: calc(100% + 2 * var(--bleed-reach));
+  border-top: 1px dashed var(--wireframe);
+  border-bottom: 1px dashed var(--wireframe);
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 22%,
+    #000 78%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    #000 22%,
+    #000 78%,
+    transparent
+  );
+}
+.demos__bleed-y {
+  left: 0;
+  right: 0;
+  top: calc(-1 * var(--bleed-reach));
+  bottom: -3.2rem;
+  border-left: 1px dashed var(--wireframe);
+  border-right: 1px dashed var(--wireframe);
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 9rem,
+    #000 calc(100% - 4rem),
+    transparent
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent,
+    #000 9rem,
+    #000 calc(100% - 4rem),
+    transparent
+  );
+}
+
+.demo__container {
+  width: 100%;
+  aspect-ratio: 1/1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.demo__container.wide {
+  aspect-ratio: 16/9;
 }
 
 .demo__hero,
 .demo__number,
 .demo__text {
+  font-family: var(--font-display);
+  font-weight: 500;
   color: var(--color-black);
   letter-spacing: -0.03em;
   line-height: 1;
@@ -240,7 +484,7 @@ a {
   padding: 0.4rem 0.8rem;
   border: none;
   border-radius: 999px;
-  background: var(--bg);
+  background: var(--bg-grey);
   color: var(--text-color);
   cursor: pointer;
   transition:
@@ -291,6 +535,12 @@ a {
   height: 16px;
 }
 
+/* Match the dial track and the docked text field to the install code blocks */
+.demo__panel .dialkit-slider,
+.demo__dock .dialkit-text-field {
+  background: var(--bg-grey);
+}
+
 .demo__dials {
   display: flex;
   flex-direction: column;
@@ -313,6 +563,46 @@ a {
   .demo .demo__container:has(.demo__controls, .demo__panel, .demo__dock) {
     aspect-ratio: 1/1;
   }
+
+  /* Single column, narrowed so the full-bleed rules have room to fade out in
+     the margins on either side rather than against the screen edge. */
+  .demos {
+    grid-template-columns: minmax(0, 1fr);
+    margin-inline: 2rem;
+  }
+
+  .demos > section:nth-of-type(1),
+  .demos > section:nth-of-type(2) {
+    grid-column: 1 / -1;
+  }
+
+  .demos > section:nth-of-type(2)::after {
+    display: none;
+  }
+
+  .demos > section:nth-of-type(n + 2)::before {
+    opacity: 1;
+  }
+
+  /* Hold the horizontals solid across the grid, fading only in the margins.
+     4rem = page padding (2rem) + grid margin (2rem) = grid edge from the viewport. */
+  .demos__bleed-x,
+  .demos > section::before {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 4rem,
+      #000 calc(100% - 4rem),
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0,
+      #000 4rem,
+      #000 calc(100% - 4rem),
+      transparent 100%
+    );
+  }
 }
 
 /* ── Dialkit slider — ported verbatim from ../dialkit, light theme ── */
@@ -328,6 +618,12 @@ a {
   --dial-text-tertiary: rgba(0, 0, 0, 0.35);
 
   --dial-border-hover: rgba(0, 0, 0, 0.13);
+
+  /* Gauge fill — a darker shade of the green-tinted background, sitting between
+     it and the dark green text. Kept light enough that the muted label/value
+     text (rgba black 0.6) stays readable over it (~4.5:1). */
+  --dial-fill: #c0cdb7;
+  --dial-fill-active: #9eb186;
 
   --dial-radius: 8px;
   --dial-row-height: 36px;
@@ -389,14 +685,14 @@ a {
   top: 0;
   bottom: 0;
   left: 0;
-  background: var(--dial-surface-active);
+  background: var(--dial-fill);
   border-radius: var(--dial-radius);
   transition: background 0.15s;
   pointer-events: none;
 }
 
 .dialkit-slider-active .dialkit-slider-fill {
-  background: var(--dial-border-hover);
+  background: var(--dial-fill-active);
 }
 
 .dialkit-slider-handle {
@@ -519,15 +815,25 @@ a {
 }
 
 /* Usage */
+/* Install / usage is the final row of the wireframe grid: inline padding keeps
+   its content clear of the vertical border rules, block padding clears the
+   horizontal divider above and the frame below. */
 .page__install {
-  margin-top: 9.6rem;
+  padding: 4.8rem 2.4rem;
 }
 
 .page__install h2 {
-  font-size: 1.75rem;
+  font-size: 2.4rem;
+  font-weight: 500;
+  font-style: italic;
+  font-feature-settings: "dlig" on;
 }
 
 .page__install h3 {
+  font-size: 2rem;
+  font-weight: 500;
+  font-style: italic;
+  font-feature-settings: "dlig" on;
   margin-top: 1lh;
 }
 
@@ -664,7 +970,6 @@ a {
 .install__link {
   font-size: 1.4rem;
   line-height: 1.6;
-  margin-top: 2lh;
 }
 
 .page__install pre {
@@ -685,8 +990,10 @@ a {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 0.4rem;
+  gap: 0.8rem;
   font-size: 1.4rem;
+  margin-top: 3.2rem;
+  padding-inline: 2.4rem;
 }
 
 .credit {

@@ -90,10 +90,9 @@ export default function App() {
       <div className="container">
         <header className="page__header">
           <h1>Metamorphosis</h1>
-          <p>Animated text that morphs between values.</p>
         </header>
 
-        <div className="demo-grid">
+        <div className="demos">
           <section className="demo">
             <div className="demo__container">
               <TextMorph className="demo__text">{WORDS[wordIndex]}</TextMorph>
@@ -106,19 +105,13 @@ export default function App() {
               </TextMorph>
             </div>
           </section>
-        </div>
 
-        <div className="demo-grid">
           {/* Spring presets — same word, different physics */}
           <SpringPresets />
-        </div>
 
-        <div className="demo-grid">
           {/* Live stiffness / damping playground */}
           <SpringPlayground />
-        </div>
 
-        <div className="demo-grid">
           {/* Morphs live as you type */}
           <section className="demo">
             <div className="demo__container wide">
@@ -137,17 +130,25 @@ export default function App() {
               </div>
             </div>
           </section>
-        </div>
 
-        <section className="page__install">
-          <h2>Install</h2>
-          <InstallTabs />
-          <h3>Usage</h3>
-          <pre>
-            <code>{`import { TextMorph } from "metamorphosis/react";
+          {/* Install / usage — sits inside the wireframe grid as a final row */}
+          <section className="page__install">
+            <h2>Install</h2>
+            <InstallTabs />
+            <h3>Usage</h3>
+            <pre>
+              <code>{`import { TextMorph } from "metamorphosis/react";
 
 <TextMorph>{value}</TextMorph>;`}</code>
-          </pre>
+            </pre>
+          </section>
+
+          {/* Wireframe frame — full-bleed dashed rules that fade into the page */}
+          <div className="demos__bleed-x" aria-hidden="true" />
+          <div className="demos__bleed-y" aria-hidden="true" />
+        </div>
+
+        <section className="credits">
           <p className="install__link">
             For documentation, check the project on{" "}
             <a
@@ -158,8 +159,6 @@ export default function App() {
               Github
             </a>
           </p>
-        </section>
-        <section className="credits">
           <div className="credit">
             <span>Made by</span>
             <IconLink href="https://oliviercarignan.com">
@@ -375,13 +374,21 @@ function SpringPlayground() {
           <div className="playground__readout">
             <span>
               duration{" "}
-              <span className="playground__readout-value">{duration}ms</span>
+              <TextMorph
+                className="playground__readout-value"
+                granularity="grapheme"
+              >
+                {`${duration}ms`}
+              </TextMorph>
             </span>
             <span>
               ζ{" "}
-              <span className="playground__readout-value">
+              <TextMorph
+                className="playground__readout-value"
+                granularity="grapheme"
+              >
                 {zeta.toFixed(2)}
-              </span>
+              </TextMorph>
             </span>
           </div>
 

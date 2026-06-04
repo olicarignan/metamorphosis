@@ -1,5 +1,6 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { motion, useMotionValue, useTransform, animate } from "motion/react";
+import { TextMorph } from "../../src/react";
 
 // ── Math helpers (ported from dialkit's shortcut-utils) ──
 
@@ -447,7 +448,9 @@ export function Slider({
             onMouseDown={(e) => isValueEditable && e.stopPropagation()}
             style={{ cursor: isValueEditable ? "text" : "default" }}
           >
-            {displayValue}
+            <TextMorph as="span" granularity="grapheme">
+              {displayValue}
+            </TextMorph>
           </span>
         )}
       </motion.div>
