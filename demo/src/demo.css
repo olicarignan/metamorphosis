@@ -737,15 +737,24 @@ a {
     aspect-ratio: 1/1;
   }
 
-  /* Single column on narrow viewports. */
+  /* Single column on narrow viewports, using more of the width — tighten the
+     page and install side padding so the install/usage section reads wider. */
+  .page {
+    padding-inline: 1.6rem;
+  }
+
   .demos {
     grid-template-columns: minmax(0, 1fr);
-    margin-inline: 2rem;
+    margin-inline: 0;
   }
 
   .demos > section:nth-of-type(1),
   .demos > section:nth-of-type(2) {
     grid-column: 1 / -1;
+  }
+
+  .page__install {
+    padding-inline: 1.6rem;
   }
 }
 
@@ -1162,7 +1171,11 @@ a {
   overflow: hidden;
 }
 
+/* The code scrolls horizontally inside the block (the pre stays clipped so its
+   reflection isn't cut off, while the inner code is the scroll container). */
 .page__install pre code {
+  display: block;
+  overflow-x: auto;
   position: relative;
   z-index: 1;
   font-size: 1.4rem;
