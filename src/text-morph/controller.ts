@@ -37,6 +37,8 @@ export class MorphController {
       locale: options.locale,
       scale: options.scale,
       granularity: options.granularity,
+      enterSlide: options.enterSlide,
+      stagger: options.stagger,
       debug: options.debug,
       disabled: options.disabled,
       respectReducedMotion: options.respectReducedMotion,

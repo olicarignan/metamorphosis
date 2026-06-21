@@ -38,6 +38,8 @@ export const DEFAULT_TEXT_MORPH_OPTIONS = {
   scale: true,
   ease: "cubic-bezier(0.22, 1, 0.36, 1)",
   granularity: "auto",
+  enterSlide: 0,
+  stagger: 0,
   disabled: false,
   respectReducedMotion: true,
 } as const satisfies Omit<TextMorphOptions, "element">;
@@ -164,6 +166,8 @@ export class TextMorph {
     this.currentMeasures = measure(this.element);
     this.updateStyles(segments);
 
+    const exitSlide = this.options.enterSlide ?? 0;
+
     exiting.forEach((child) => {
       if (this.isInitialRender) {
         child.remove();
@@ -181,6 +185,7 @@ export class TextMorph {
         duration: this.options.duration!,
         ease: this.options.ease!,
         scale: this.options.scale!,
+        slideUp: exitSlide,
       });
     });
 
@@ -210,6 +215,12 @@ export class TextMorph {
       segmentIds.filter((id) => this.prevMeasures[id]),
     );
 
+    const slideUp = this.options.enterSlide ?? 0;
+    const staggerStep = this.options.stagger ?? 0;
+    // Counts entering segments in DOM order (left to right) so each one can be
+    // delayed a little more than the last.
+    let enterIndex = 0;
+
     children.forEach((child, index) => {
       if (child.hasAttribute(ATTR_EXITING)) return;
       const key = child.getAttribute(ATTR_ID) || `child-${index}`;
@@ -227,12 +238,17 @@ export class TextMorph {
         ? computeDelta(this.prevMeasures, this.currentMeasures, deltaKey)
         : { dx: 0, dy: 0 };
 
+      const delay = isNew ? enterIndex * staggerStep : 0;
+      if (isNew) enterIndex++;
+
       animateEnterOrPersist(child, {
         deltaX,
         deltaY,
         isNew,
         duration: this.options.duration!,
         ease: this.options.ease!,
+        slideUp,
+        delay,
       });
     });
   }

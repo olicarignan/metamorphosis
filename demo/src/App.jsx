@@ -106,6 +106,9 @@ export default function App() {
             </div>
           </section>
 
+          {/* Day stepper — step through calendar days, morphing the label */}
+          <CalendarStepper />
+
           {/* Spring presets — same word, different physics */}
           <SpringPresets />
 
@@ -289,6 +292,121 @@ const CheckIcon = () => (
     <path d="M20 6 9 17l-5-5" />
   </svg>
 );
+
+const ChevronIcon = () => (
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="m15 18-6-6 6-6" />
+  </svg>
+);
+
+const startOfToday = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
+
+// The day label, mirroring the SwiftUI date selector: relative names for the
+// nearby days, an explicit short date otherwise.
+function dayLabel(offset, date) {
+  if (offset === 0) return "Today";
+  if (offset === 1) return "Tomorrow";
+  if (offset === -1) return "Yesterday";
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
+// Secondary weekday line — only the relative days show it (like the original).
+// Non-relative days morph to a blank line so the row keeps its height.
+function dayDetail(offset, date) {
+  if (Math.abs(offset) > 1) return " ";
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
+}
+
+// Based on the glass-buttons date selector's text animation:
+// `.contentTransition(.numericText())` driven by
+// `.spring(response: 0.25, dampingFraction: 0.5)`. The spring converts to
+// stiffness = (2π / response)² ≈ 632 and damping = 2 · ζ · √stiffness. We bump
+// the damping a little past the faithful 25 (ζ = 0.5) to ζ ≈ 0.6 to take some
+// of the bounce off. numericText rolls glyphs vertically (new ones rise in from
+// below, old ones rise up and out), fading + blurring, with no scale.
+const DAY_SPRING = { stiffness: 632, damping: 30 };
+
+// Entering glyphs are staggered left to right on top of the numericText roll.
+const DAY_STAGGER = 28;
+
+/**
+ * Calendar-day stepper: an on-brand take on the glass-buttons date selector.
+ * The chevrons step the day and the label morphs from one value to the next.
+ */
+function CalendarStepper() {
+  const [offset, setOffset] = useState(0);
+
+  const date = useMemo(() => {
+    const d = startOfToday();
+    d.setDate(d.getDate() + offset);
+    return d;
+  }, [offset]);
+
+  return (
+    <section className="demo">
+      <div className="demo__container wide">
+        <div className="stepper">
+          <button
+            type="button"
+            className="stepper__button"
+            onClick={() => setOffset((o) => o - 1)}
+            aria-label="Previous day"
+          >
+            <ChevronIcon />
+          </button>
+
+          <div className="stepper__display" aria-live="polite">
+            <TextMorph
+              className="stepper__label"
+              granularity="grapheme"
+              ease={DAY_SPRING}
+              enterSlide={22}
+              stagger={DAY_STAGGER}
+            >
+              {dayLabel(offset, date)}
+            </TextMorph>
+            <TextMorph
+              className="stepper__detail"
+              granularity="grapheme"
+              ease={DAY_SPRING}
+              enterSlide={9}
+              stagger={DAY_STAGGER}
+            >
+              {dayDetail(offset, date)}
+            </TextMorph>
+          </div>
+
+          <button
+            type="button"
+            className="stepper__button stepper__button--next"
+            onClick={() => setOffset((o) => o + 1)}
+            aria-label="Next day"
+          >
+            <ChevronIcon />
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
 
 /**
  * Showcases the same word morphing under different spring presets. Pass a
