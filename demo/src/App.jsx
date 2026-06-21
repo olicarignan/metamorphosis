@@ -1,7 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { TextMorph } from "../../src/react";
-import { spring } from "../../src/text-morph/utils/spring";
-import { Slider } from "./Slider";
 import { IconLink } from "./IconLink";
 import { tickerProps } from "./ticker";
 
@@ -48,17 +46,22 @@ export default function App() {
     <main className="page">
       <div className="container">
         <header className="page__header">
-          <h1>Metamorphosis</h1>
+          <RevealTitle>Metamorphosis</RevealTitle>
+          <p className="page__subtitle">
+            A dependency-free text animation library
+          </p>
         </header>
 
         <div className="demos">
           <section className="demo">
-            <div className="demo__container">
+            <div className="demo__container wide">
+              <span className="demo__label">Default morph</span>
               <TextMorph className="demo__text">{WORDS[wordIndex]}</TextMorph>
             </div>
           </section>
           <section className="demo">
-            <div className="demo__container">
+            <div className="demo__container wide">
+              <span className="demo__label">Ticker</span>
               <TextMorph className="demo__text" {...tickerProps()}>
                 {clockFormat(now)}
               </TextMorph>
@@ -67,9 +70,6 @@ export default function App() {
 
           {/* Day stepper — step through calendar days, morphing the label */}
           <CalendarStepper />
-
-          {/* Live stiffness / damping playground */}
-          <SpringPlayground />
 
           {/* Morphs live as you type */}
           <section className="demo">
@@ -101,10 +101,6 @@ export default function App() {
 <TextMorph>{value}</TextMorph>;`}</code>
             </pre>
           </section>
-
-          {/* Wireframe frame — full-bleed dashed rules that fade into the page */}
-          <div className="demos__bleed-x" aria-hidden="true" />
-          <div className="demos__bleed-y" aria-hidden="true" />
         </div>
 
         <section className="credits">
@@ -127,6 +123,31 @@ export default function App() {
         </section>
       </div>
     </main>
+  );
+}
+
+/**
+ * Reveals its text on mount with the same logic as the stepper morph — each
+ * letter fades in and slides up from below, staggered left to right. The
+ * letters occupy their final layout from the start (only opacity/transform
+ * animate), so the title never shifts as it appears. Driven by CSS so the
+ * easing stays smooth and the section reveals can be timed against it.
+ */
+function RevealTitle({ children }) {
+  const title = String(children);
+  return (
+    <h1 className="page__title" aria-label={title}>
+      {[...title].map((char, i) => (
+        <span
+          key={i}
+          aria-hidden="true"
+          className="page__title-char"
+          style={{ animationDelay: `${i * 0.04}s` }}
+        >
+          {char === " " ? " " : char}
+        </span>
+      ))}
+    </h1>
   );
 }
 
@@ -172,7 +193,7 @@ function InstallTabs() {
               setCopied(false);
             }}
           >
-            {m.id}
+            <span className="install__tab-label">{m.id}</span>
           </button>
         ))}
       </div>
@@ -249,19 +270,21 @@ const CheckIcon = () => (
   </svg>
 );
 
-const ChevronIcon = () => (
+// Vertical arrow, ported from the glass-buttons date selector. Points up by
+// default; the previous-day button flips it with CSS.
+const ArrowIcon = () => (
   <svg
     width="20"
-    height="20"
-    viewBox="0 0 24 24"
+    height="22"
+    viewBox="0 0 20 22"
     fill="none"
     stroke="currentColor"
-    strokeWidth="2"
+    strokeWidth="2.2"
     strokeLinecap="round"
     strokeLinejoin="round"
     aria-hidden="true"
   >
-    <path d="m15 18-6-6 6-6" />
+    <path d="M10 3v16M10 3 4 9M10 3l6 6" />
   </svg>
 );
 
@@ -310,11 +333,11 @@ function CalendarStepper() {
         <div className="stepper">
           <button
             type="button"
-            className="stepper__button"
+            className="stepper__button stepper__button--prev"
             onClick={() => setOffset((o) => o - 1)}
             aria-label="Previous day"
           >
-            <ChevronIcon />
+            <ArrowIcon />
           </button>
 
           <div className="stepper__display" aria-live="polite">
@@ -332,87 +355,8 @@ function CalendarStepper() {
             onClick={() => setOffset((o) => o + 1)}
             aria-label="Next day"
           >
-            <ChevronIcon />
+            <ArrowIcon />
           </button>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-/**
- * Live playground: drag stiffness / damping and watch the morph respond in
- * real time. The spring config is passed straight through the `ease` prop.
- */
-function SpringPlayground() {
-  const [stiffness, setStiffness] = useState(180);
-  const [damping, setDamping] = useState(12);
-  const [wordIndex, setWordIndex] = useState(0);
-
-  // Cycle words continuously so the current spring is always on display.
-  useEffect(() => {
-    const id = setInterval(() => {
-      setWordIndex((i) => (i + 1) % WORDS.length);
-    }, 1500);
-    return () => clearInterval(id);
-  }, []);
-
-  // Derive the same easing/duration metamorphosis will use, for the readout.
-  const { duration } = useMemo(
-    () => spring({ stiffness, damping }),
-    [stiffness, damping],
-  );
-
-  // Damping ratio — < 1 oscillates (bouncy), >= 1 settles without overshoot.
-  const zeta = damping / (2 * Math.sqrt(stiffness));
-
-  return (
-    <section className="demo">
-      <div className="demo__container wide">
-        <TextMorph className="demo__text" ease={{ stiffness, damping }}>
-          {WORDS[wordIndex]}
-        </TextMorph>
-
-        <div className="dialkit-root demo__panel" data-theme="light">
-          <div className="playground__readout">
-            <span>
-              duration{" "}
-              <TextMorph
-                className="playground__readout-value"
-                {...tickerProps()}
-              >
-                {`${duration}ms`}
-              </TextMorph>
-            </span>
-            <span>
-              ζ{" "}
-              <TextMorph
-                className="playground__readout-value"
-                {...tickerProps()}
-              >
-                {zeta.toFixed(2)}
-              </TextMorph>
-            </span>
-          </div>
-
-          <div className="demo__dials">
-            <Slider
-              label="Stiffness"
-              value={stiffness}
-              min={20}
-              max={400}
-              step={5}
-              onChange={setStiffness}
-            />
-            <Slider
-              label="Damping"
-              value={damping}
-              min={2}
-              max={40}
-              step={1}
-              onChange={setDamping}
-            />
-          </div>
         </div>
       </div>
     </section>

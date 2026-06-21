@@ -205,8 +205,34 @@
   --bg: #fcfdf6;
   --bg-grey: #f0f2e8;
   --hover-grey: #1f3c14;
-  /* Wireframe dashed border for the demo cells */
-  --wireframe: rgba(108, 120, 96, 0.45);
+
+  /* Green-glass theme — steel gradient backdrop with frosted surfaces and
+     white text that fades top→bottom. */
+  --page-gradient: linear-gradient(
+    116.34deg,
+    #43594f 14.6%,
+    #5d7268 35.1%,
+    #788d83 56.4%,
+    #748176 85.4%
+  );
+  --text-gradient: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.3) 100%
+  );
+  --text-strong: rgba(255, 255, 255, 0.9);
+  --text-soft: rgba(255, 255, 255, 0.6);
+  --glass-fill: #788d83;
+  --glass-highlight: linear-gradient(180deg, #7a8c89 0%, #98a79f 100%);
+  /* A soft drop shadow plus a beveled steel rim — light along the top/bottom
+     edges, dark along the sides — emulating the multi-gradient strokes used on
+     the glass surfaces in the design. */
+  --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.14);
+  --glass-bevel:
+    inset 0 0.6px 0.5px rgba(255, 255, 255, 0.4),
+    inset 0 -0.6px 0.5px rgba(255, 255, 255, 0.25),
+    inset 0.6px 0 0.6px rgba(0, 0, 0, 0.14),
+    inset -0.6px 0 0.6px rgba(0, 0, 0, 0.14);
 
   --font-sans: "s", Helvetica, sans-serif;
   --font-display: "d", Times New Roman, serif;
@@ -239,7 +265,8 @@ body {
 }
 
 body {
-  background: var(--bg);
+  background: var(--page-gradient) fixed;
+  color: var(--text-soft);
   overflow-x: hidden;
   font-size: 1.75rem;
   font-weight: 375;
@@ -252,12 +279,30 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-display);
+  font-family: var(--font-sans);
   margin: 0;
-  font-weight: 450;
+  font-weight: 400;
   color: var(--color-black);
   letter-spacing: -0.04em;
   font-size: 1.75rem;
+}
+
+/* White-to-transparent gradient text for the display type. Applied to the
+   morph segments (`[torph-item]`) too, so each glyph carries the gradient. */
+.page__header h1,
+.page__header h1 [torph-item],
+.page__install h2,
+.page__install h3,
+.install__tab-label,
+.demo__text,
+.demo__text [torph-item],
+.stepper__label,
+.stepper__label [torph-item] {
+  background-image: var(--text-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
 }
 
 p {
@@ -288,7 +333,92 @@ a {
     font-size: 3rem;
     font-feature-settings: "dlig" on;
     letter-spacing: -0.04em;
-    font-weight: 500;
+    font-weight: 400;
+  }
+}
+
+.page__subtitle {
+  margin-top: 1.2rem;
+  font-size: 1.6rem;
+  letter-spacing: -0.01em;
+  color: var(--text-soft);
+}
+
+/* ── On-load reveal ──────────────────────────────────────────────────────── */
+
+/* Title: each letter fades in and slides up from below, staggered left to right
+   (same logic as the stepper morph). Letters keep their final layout — only
+   opacity/transform animate — so the title never shifts as it appears. The
+   per-letter delay is set inline; the easing is smooth (no bounce). */
+.page__title-char {
+  display: inline-block;
+  white-space: pre;
+  background-image: var(--text-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  animation: title-rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes title-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.5em);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Once the title has finished, the subtitle and each section fade in, staggered
+   top to bottom. */
+.page__subtitle,
+.demos > section,
+.credits {
+  animation: reveal-fade 0.7s ease both;
+}
+
+@keyframes reveal-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.page__subtitle {
+  animation-delay: 1s;
+}
+.demos > section:nth-of-type(1) {
+  animation-delay: 1.15s;
+}
+.demos > section:nth-of-type(2) {
+  animation-delay: 1.3s;
+}
+.demos > section:nth-of-type(3) {
+  animation-delay: 1.45s;
+}
+.demos > section:nth-of-type(4) {
+  animation-delay: 1.6s;
+}
+.demos > section:nth-of-type(5) {
+  animation-delay: 1.75s;
+}
+.credits {
+  animation-delay: 1.9s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page__title-char,
+  .page__subtitle,
+  .demos > section,
+  .credits {
+    animation: none;
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -298,134 +428,18 @@ a {
   margin: 0 auto;
 }
 
-/* Demo blocks — a wireframe grid: flush cells separated only by dashed rules,
-   with the outer frame bleeding past the container and fading into the page. */
+/* Demo blocks — a two-column grid of flush cells floating on the gradient. */
 
 .demos {
   position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 0;
   margin-top: 4rem;
-  /* How far the frame/rules bleed past the grid before fading. The vertical
-     rules reach this far above the grid (bleed-y top), and the horizontal rules
-     are capped to overhang by the same amount on each side. */
-  --bleed-reach: 13rem;
-}
-
-/* Full-width demos by default; the first two sit side-by-side in row 1. */
-.demos > section {
-  grid-column: 1 / -1;
-}
-.demos > section:nth-of-type(1),
-.demos > section:nth-of-type(2) {
-  grid-column: auto;
 }
 
 .demos > section {
   position: relative;
-}
-
-/* Internal horizontal dividers — full-bleed dashed rules between rows that
-   fade into the page at their ends, matching the outer frame. Off by default;
-   switched on above each full-width demo (and every cell once stacked). */
-.demos > section::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100vw;
-  max-width: calc(100% + 2 * var(--bleed-reach));
-  border-top: 1px dashed var(--wireframe);
-  pointer-events: none;
-  opacity: 0;
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent,
-    #000 22%,
-    #000 78%,
-    transparent
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent,
-    #000 22%,
-    #000 78%,
-    transparent
-  );
-}
-.demos > section:nth-of-type(n + 3)::before {
-  opacity: 1;
-}
-
-/* Row-1 vertical divider — drawn on the left edge of the second cell so it
-   doesn't disturb the grid flow. Stays within the row (no upward bleed) so the
-   hero is left clear in the center. */
-.demos > section:nth-of-type(2)::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  border-left: 1px dashed var(--wireframe);
-  pointer-events: none;
-}
-
-/* Outer frame — full-bleed dashed lines that fade out at their ends. bleed-x
-   carries the top/bottom rules (running past the container left↔right); bleed-y
-   carries the left/right rules (running past it top↕bottom). */
-.demos__bleed-x,
-.demos__bleed-y {
-  position: absolute;
-  pointer-events: none;
-  z-index: -1;
-}
-.demos__bleed-x {
-  top: 0;
-  bottom: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 100vw;
-  max-width: calc(100% + 2 * var(--bleed-reach));
-  border-top: 1px dashed var(--wireframe);
-  border-bottom: 1px dashed var(--wireframe);
-  -webkit-mask-image: linear-gradient(
-    to right,
-    transparent,
-    #000 22%,
-    #000 78%,
-    transparent
-  );
-  mask-image: linear-gradient(
-    to right,
-    transparent,
-    #000 22%,
-    #000 78%,
-    transparent
-  );
-}
-.demos__bleed-y {
-  left: 0;
-  right: 0;
-  top: calc(-1 * var(--bleed-reach));
-  bottom: -3.2rem;
-  border-left: 1px dashed var(--wireframe);
-  border-right: 1px dashed var(--wireframe);
-  -webkit-mask-image: linear-gradient(
-    to bottom,
-    transparent,
-    #000 9rem,
-    #000 calc(100% - 4rem),
-    transparent
-  );
-  mask-image: linear-gradient(
-    to bottom,
-    transparent,
-    #000 9rem,
-    #000 calc(100% - 4rem),
-    transparent
-  );
 }
 
 .demo__container {
@@ -441,29 +455,40 @@ a {
   aspect-ratio: 16/9;
 }
 
+/* Small, subtle caption sitting just below the demo's text, as a subtitle. */
+.demo__label {
+  position: absolute;
+  top: calc(50% + 2.4rem);
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 1.2rem;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.35);
+}
+
 .demo__hero,
 .demo__number,
 .demo__text {
-  font-family: var(--font-display);
-  font-weight: 500;
-  color: var(--color-black);
+  font-family: var(--font-sans);
+  font-weight: 400;
   letter-spacing: -0.03em;
   line-height: 1;
 }
 
 .demo__hero {
   font-size: clamp(4.8rem, 12vw, 9.6rem);
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .demo__number {
   font-size: clamp(4rem, 10vw, 8rem);
-  font-weight: 500;
+  font-weight: 400;
 }
 
 .demo__text {
   font-size: 2.625rem;
-  font-weight: 425;
+  font-weight: 400;
 }
 
 /* Controls */
@@ -508,76 +533,156 @@ a {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: clamp(1.6rem, 4vw, 3.2rem);
 }
 
+/* Frosted green-glass buttons — the same glass surface as the inputs, shaped
+   into a disc: tinted fill, hairline black rim, a soft frosted reflection
+   pooling toward the bottom, and a gentle drop shadow. */
+/* Pinned at a fixed offset from the cell's center so they stay close to the
+   label but never move as it morphs between values. */
 .stepper__button {
-  flex-shrink: 0;
+  --x: 0rem;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(calc(-50% + var(--x)), -50%);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 4.8rem;
-  height: 4.8rem;
+  width: 5rem;
+  height: 5rem;
   padding: 0;
   border: none;
   border-radius: 999px;
-  background: var(--bg-grey);
-  color: var(--color-black);
+  background: var(--glass-fill);
+  color: rgba(255, 255, 255, 0.85);
   cursor: pointer;
-  transition:
-    background 0.2s ease,
-    color 0.2s ease,
-    transform 0.15s ease;
+  overflow: hidden;
+  box-shadow: var(--glass-shadow), var(--glass-bevel);
+  transition: transform 0.15s ease;
 }
 
-.stepper__button:hover {
-  background: var(--hover-grey);
-  color: var(--bg);
+.stepper__button--prev {
+  --x: -11rem;
+}
+
+.stepper__button--next {
+  --x: 11rem;
+}
+
+/* Frosted reflection — a blurred lighter disc sitting low in the button. */
+.stepper__button::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 5.6px);
+  transform: translate(-50%, -50%);
+  width: 72%;
+  height: 72%;
+  border-radius: 999px;
+  background: var(--glass-highlight);
+  filter: blur(2.5px);
+  pointer-events: none;
+}
+
+/* Arrow sits above the reflection. */
+.stepper__button svg {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.18));
 }
 
 .stepper__button:active {
-  transform: scale(0.94);
+  transform: translate(calc(-50% + var(--x)), -50%) scale(0.94);
 }
 
-.stepper__button--next svg {
+/* Base arrow points up (next day); the previous-day button flips it down. */
+.stepper__button--prev svg {
   transform: rotate(180deg);
 }
 
+/* Absolutely centered on the cell — the same anchor the buttons use — so the
+   label always sits dead-center with them, whether or not a detail line shows.
+   The detail floats just below (out of flow), so it never shifts the label. */
 .stepper__display {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.4rem;
-  min-width: 16rem;
+  min-width: 12rem;
   text-align: center;
 }
 
 .stepper__label {
-  font-family: var(--font-display);
-  font-weight: 500;
-  color: var(--color-black);
+  font-family: var(--font-sans);
+  font-weight: 400;
   letter-spacing: -0.03em;
   line-height: 1;
-  font-size: clamp(3.2rem, 7vw, 4.8rem);
-  font-variant-numeric: tabular-nums;
+  font-size: 2.625rem;
 }
 
-.stepper__detail {
+/* Extra specificity so this beats the library's injected `[torph-root]
+   { position: relative }` rule — otherwise the detail stays in flow and
+   pushes the label above the buttons' center. */
+.stepper__display .stepper__detail {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-top: 0.4rem;
   font-size: 1.5rem;
-  color: var(--color-grey);
+  color: var(--text-soft);
   letter-spacing: -0.01em;
   line-height: 1.4;
   min-height: 1.4em;
   font-variant-numeric: tabular-nums;
 }
 
-/* Text field docked at the bottom — same width/centering as the playground dials */
+/* Text field sitting just below the "Type to morph" text — a frosted surface. */
 .demo__dock {
   position: absolute;
-  bottom: 1.6rem;
+  top: calc(50% + 2.8rem);
+  bottom: auto;
   left: 50%;
   transform: translateX(-50%);
   width: min(34rem, calc(100% - 3.2rem));
+  overflow: hidden;
+  border-radius: 0.8rem;
+  background: var(--glass-fill);
+  box-shadow: var(--glass-shadow), var(--glass-bevel);
+}
+
+/* Frosted reflection — a blurred lighter sheet pooling toward the bottom of
+   each glass surface (gradient #7a8c89 → #a3b2b0, vertical, layer-blur ≈ 2.5px). */
+.demo__dock::before,
+.install__command::before,
+.page__install pre::before {
+  content: "";
+  position: absolute;
+  left: 0.6rem;
+  right: 0.6rem;
+  top: 30%;
+  bottom: -3px;
+  border-radius: 0.5rem;
+  background: var(--glass-highlight);
+  filter: blur(2.5px);
+  pointer-events: none;
+}
+
+.demo__dock .dialkit-text-field,
+.demo__dock .dialkit-text-field:hover,
+.demo__dock .dialkit-text-field:focus {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  color: var(--text-strong);
+}
+
+.demo__dock .dialkit-text-field::placeholder {
+  color: rgba(255, 255, 255, 0.5);
 }
 
 /* Playground panel — readout + dials, centered and narrower than the container */
@@ -604,9 +709,8 @@ a {
   height: 16px;
 }
 
-/* Match the dial track and the docked text field to the install code blocks */
-.demo__panel .dialkit-slider,
-.demo__dock .dialkit-text-field {
+/* Match the dial track to the install code blocks */
+.demo__panel .dialkit-slider {
   background: var(--bg-grey);
 }
 
@@ -633,8 +737,7 @@ a {
     aspect-ratio: 1/1;
   }
 
-  /* Single column, narrowed so the full-bleed rules have room to fade out in
-     the margins on either side rather than against the screen edge. */
+  /* Single column on narrow viewports. */
   .demos {
     grid-template-columns: minmax(0, 1fr);
     margin-inline: 2rem;
@@ -643,34 +746,6 @@ a {
   .demos > section:nth-of-type(1),
   .demos > section:nth-of-type(2) {
     grid-column: 1 / -1;
-  }
-
-  .demos > section:nth-of-type(2)::after {
-    display: none;
-  }
-
-  .demos > section:nth-of-type(n + 2)::before {
-    opacity: 1;
-  }
-
-  /* Hold the horizontals solid across the grid, fading only in the margins.
-     4rem = page padding (2rem) + grid margin (2rem) = grid edge from the viewport. */
-  .demos__bleed-x,
-  .demos > section::before {
-    -webkit-mask-image: linear-gradient(
-      to right,
-      transparent 0,
-      #000 4rem,
-      #000 calc(100% - 4rem),
-      transparent 100%
-    );
-    mask-image: linear-gradient(
-      to right,
-      transparent 0,
-      #000 4rem,
-      #000 calc(100% - 4rem),
-      transparent 100%
-    );
   }
 }
 
@@ -898,16 +973,14 @@ a {
 
 .page__install h2 {
   font-size: 2.4rem;
-  font-weight: 500;
-  font-style: italic;
-  font-feature-settings: "dlig" on;
+  font-weight: 400;
+  font-style: normal;
 }
 
 .page__install h3 {
   font-size: 2rem;
-  font-weight: 500;
-  font-style: italic;
-  font-feature-settings: "dlig" on;
+  font-weight: 400;
+  font-style: normal;
   margin-top: 1lh;
 }
 
@@ -927,37 +1000,71 @@ a {
 }
 
 .install__tabs button {
+  position: relative;
+  overflow: hidden;
   font-family: var(--font-sans);
   font-size: 1.4rem;
-  font-weight: 375;
+  font-weight: 400;
   letter-spacing: -0.01em;
-  padding: 0.4rem 0;
+  padding: 0.4rem 1rem;
   border: none;
+  border-radius: 999px;
   background: transparent;
-  color: var(--color-grey);
   cursor: pointer;
-  transition: color 0.2s ease;
 }
 
-.install__tabs button:hover {
-  color: var(--color-black);
+/* The label sits above the active pill / reflection pseudo-elements. */
+.install__tab-label {
+  position: relative;
+  z-index: 1;
 }
 
-.install__tabs button.is-active {
-  color: var(--color-black);
-  font-weight: 475;
+/* The active tab's label is solid white rather than the gradient. */
+.install__tabs button.is-active .install__tab-label {
+  background: none;
+  -webkit-text-fill-color: #fff;
+  color: #fff;
+}
+
+/* Active tab wears a frosted glass pill (drawn behind the label): the pill
+   surface on ::before, its low-pooling reflection on ::after. */
+.install__tabs button.is-active::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--glass-fill);
+  box-shadow: var(--glass-shadow), var(--glass-bevel);
+}
+
+.install__tabs button.is-active::after {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  right: 0.5rem;
+  top: 30%;
+  bottom: -3px;
+  border-radius: 999px;
+  background: var(--glass-highlight);
+  filter: blur(2.5px);
+  pointer-events: none;
 }
 
 .install__command {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 1.2rem;
   padding: 1rem 1rem 1rem 2rem;
-  border-radius: 1.6rem;
-  background: var(--bg-grey);
+  border-radius: 0.8rem;
+  background: var(--glass-fill);
+  box-shadow: var(--glass-shadow), var(--glass-bevel);
+  overflow: hidden;
 }
 
 .install__scroll {
+  position: relative;
+  z-index: 1;
   flex: 1;
   min-width: 0;
   overflow-x: auto;
@@ -967,11 +1074,13 @@ a {
   font-family: var(--font-mono);
   font-size: 1.4rem;
   line-height: 1.6;
-  color: var(--color-black);
+  color: #fff;
 }
 
 /* Copy button — copy icon morphs to a checkmark on success */
 .install__copy {
+  position: relative;
+  z-index: 1;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -982,7 +1091,7 @@ a {
   border: none;
   border-radius: 0.8rem;
   background: transparent;
-  color: var(--color-grey);
+  color: var(--text-soft);
   cursor: pointer;
   transition:
     background 0.2s ease,
@@ -990,16 +1099,12 @@ a {
 }
 
 .install__copy:hover {
-  background: var(--hover-grey);
-  color: var(--bg);
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text-strong);
 }
 
 .install__copy.is-copied {
-  color: var(--color-black);
-}
-
-.install__copy.is-copied:hover {
-  color: var(--bg);
+  color: var(--text-strong);
 }
 
 .install__copy-icons {
@@ -1038,26 +1143,32 @@ a {
 .page__install code {
   font-family: var(--font-mono);
   font-size: 0.85em;
-  color: var(--color-black);
+  color: var(--text-soft);
 }
 
 .install__link {
   font-size: 1.4rem;
   line-height: 1.6;
+  color: var(--text-soft);
 }
 
 .page__install pre {
+  position: relative;
   margin-top: 0.5lh;
   padding: 1.6rem 2rem;
-  border-radius: 1.6rem;
-  background: var(--bg-grey);
-  overflow-x: auto;
+  border-radius: 0.8rem;
+  background: var(--glass-fill);
+  box-shadow: var(--glass-shadow), var(--glass-bevel);
+  overflow: hidden;
 }
 
 .page__install pre code {
+  position: relative;
+  z-index: 1;
   font-size: 1.4rem;
   line-height: 1.6;
   white-space: pre;
+  color: #fff;
 }
 
 .credits {
@@ -1068,6 +1179,11 @@ a {
   font-size: 1.4rem;
   margin-top: 3.2rem;
   padding-inline: 2.4rem;
+  color: var(--text-soft);
+}
+
+.credits a {
+  color: var(--text-strong);
 }
 
 .credit {
