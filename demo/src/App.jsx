@@ -1,8 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { TextMorph } from "../../src/react";
-import { spring } from "../../src/text-morph/utils/spring";
-import { Slider } from "./Slider";
 import { IconLink } from "./IconLink";
+import { tickerProps } from "./ticker";
 
 const WORDS = [
   "transform",
@@ -12,42 +11,8 @@ const WORDS = [
   "shift",
   "permute",
 ];
-const SPRING_WORDS = ["bounce", "spring", "wobble", "settle", "snap"];
-
-// Live clock — formats we rotate through while it ticks each second.
-const CLOCK_FORMATS = [
-  // Jun 2 2026
-  (d) =>
-    d
-      .toLocaleDateString("en-US", {
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-      })
-      .replace(",", ""),
-  // 10:38:02
-  (d) => d.toLocaleTimeString("en-GB", { hour12: false }),
-  // Jun 2 10:38 AM
-  (d) => {
-    const date = d.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-    });
-    const time = d.toLocaleTimeString("en-US", {
-      hour: "numeric",
-      minute: "2-digit",
-      hour12: true,
-    });
-    return `${date} ${time}`;
-  },
-];
-
-// A few characterful spring presets to showcase the physics.
-const PRESETS = [
-  { name: "gentle", stiffness: 120, damping: 20 },
-  { name: "bouncy", stiffness: 180, damping: 16 },
-  { name: "stiff", stiffness: 320, damping: 26 },
-];
+// Live clock — always the time with seconds, ticking each second.
+const clockFormat = (d) => d.toLocaleTimeString("en-GB", { hour12: false });
 
 // Install command per package manager — the morph target for the install tabs.
 const INSTALL = [
@@ -60,7 +25,6 @@ const INSTALL = [
 export default function App() {
   const [wordIndex, setWordIndex] = useState(0);
   const [now, setNow] = useState(() => new Date());
-  const [clockFormat, setClockFormat] = useState(0);
 
   const [text, setText] = useState("Type to morph");
 
@@ -72,45 +36,40 @@ export default function App() {
     return () => clearInterval(id);
   }, []);
 
-  // Tick the live clock every second, and rotate its format less often.
+  // Tick the live clock every second.
   useEffect(() => {
     const tick = setInterval(() => setNow(new Date()), 1000);
-    const fmt = setInterval(
-      () => setClockFormat((i) => (i + 1) % CLOCK_FORMATS.length),
-      4000,
-    );
-    return () => {
-      clearInterval(tick);
-      clearInterval(fmt);
-    };
+    return () => clearInterval(tick);
   }, []);
 
   return (
     <main className="page">
       <div className="container">
         <header className="page__header">
-          <h1>Metamorphosis</h1>
+          <RevealTitle>Metamorphosis</RevealTitle>
+          <p className="page__subtitle">
+            A dependency-free text animation library
+          </p>
         </header>
 
         <div className="demos">
           <section className="demo">
-            <div className="demo__container">
+            <div className="demo__container wide">
+              <span className="demo__label">Default morph</span>
               <TextMorph className="demo__text">{WORDS[wordIndex]}</TextMorph>
             </div>
           </section>
           <section className="demo">
-            <div className="demo__container">
-              <TextMorph className="demo__text" granularity="grapheme">
-                {CLOCK_FORMATS[clockFormat](now)}
+            <div className="demo__container wide">
+              <span className="demo__label">Ticker</span>
+              <TextMorph className="demo__text" {...tickerProps()}>
+                {clockFormat(now)}
               </TextMorph>
             </div>
           </section>
 
-          {/* Spring presets — same word, different physics */}
-          <SpringPresets />
-
-          {/* Live stiffness / damping playground */}
-          <SpringPlayground />
+          {/* Day stepper — step through calendar days, morphing the label */}
+          <CalendarStepper />
 
           {/* Morphs live as you type */}
           <section className="demo">
@@ -142,10 +101,6 @@ export default function App() {
 <TextMorph>{value}</TextMorph>;`}</code>
             </pre>
           </section>
-
-          {/* Wireframe frame — full-bleed dashed rules that fade into the page */}
-          <div className="demos__bleed-x" aria-hidden="true" />
-          <div className="demos__bleed-y" aria-hidden="true" />
         </div>
 
         <section className="credits">
@@ -168,6 +123,31 @@ export default function App() {
         </section>
       </div>
     </main>
+  );
+}
+
+/**
+ * Reveals its text on mount with the same logic as the stepper morph — each
+ * letter fades in and slides up from below, staggered left to right. The
+ * letters occupy their final layout from the start (only opacity/transform
+ * animate), so the title never shifts as it appears. Driven by CSS so the
+ * easing stays smooth and the section reveals can be timed against it.
+ */
+function RevealTitle({ children }) {
+  const title = String(children);
+  return (
+    <h1 className="page__title" aria-label={title}>
+      {[...title].map((char, i) => (
+        <span
+          key={i}
+          aria-hidden="true"
+          className="page__title-char"
+          style={{ animationDelay: `${i * 0.04}s` }}
+        >
+          {char === " " ? " " : char}
+        </span>
+      ))}
+    </h1>
   );
 }
 
@@ -213,7 +193,7 @@ function InstallTabs() {
               setCopied(false);
             }}
           >
-            {m.id}
+            <span className="install__tab-label">{m.id}</span>
           </button>
         ))}
       </div>
@@ -290,126 +270,93 @@ const CheckIcon = () => (
   </svg>
 );
 
-/**
- * Showcases the same word morphing under different spring presets. Pass a
- * `{ stiffness, damping }` object straight to the `ease` prop and metamorphosis
- * derives a `linear()` easing + duration from the spring physics.
- */
-function SpringPresets() {
-  const [active, setActive] = useState(0);
-  const [wordIndex, setWordIndex] = useState(0);
+// Vertical arrow, ported from the glass-buttons date selector. Points up by
+// default; the previous-day button flips it with CSS.
+const ArrowIcon = () => (
+  <svg
+    width="20"
+    height="22"
+    viewBox="0 0 20 22"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="2.2"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d="M10 3v16M10 3 4 9M10 3l6 6" />
+  </svg>
+);
 
-  const preset = PRESETS[active];
+const startOfToday = () => {
+  const d = new Date();
+  d.setHours(0, 0, 0, 0);
+  return d;
+};
 
-  // Auto-advance the word so the spring is always being demonstrated.
-  useEffect(() => {
-    const id = setInterval(() => {
-      setWordIndex((i) => (i + 1) % SPRING_WORDS.length);
-    }, 1600);
-    return () => clearInterval(id);
-  }, []);
+// The day label, mirroring the SwiftUI date selector: relative names for the
+// nearby days, an explicit short date otherwise.
+function dayLabel(offset, date) {
+  if (offset === 0) return "Today";
+  if (offset === 1) return "Tomorrow";
+  if (offset === -1) return "Yesterday";
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
 
-  return (
-    <section className="demo">
-      <div className="demo__container wide">
-        <TextMorph
-          className="demo__text"
-          ease={{ stiffness: preset.stiffness, damping: preset.damping }}
-        >
-          {SPRING_WORDS[wordIndex]}
-        </TextMorph>
-        <div className="demo__controls">
-          {PRESETS.map((p, i) => (
-            <button
-              key={p.name}
-              className={i === active ? "is-active" : undefined}
-              onClick={() => {
-                setActive(i);
-                setWordIndex((w) => (w + 1) % SPRING_WORDS.length);
-              }}
-            >
-              {p.name}
-            </button>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
+// Secondary weekday line — only the relative days show it (like the original).
+// Non-relative days morph to a blank line so the row keeps its height.
+function dayDetail(offset, date) {
+  if (Math.abs(offset) > 1) return " ";
+  return date.toLocaleDateString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  });
 }
 
 /**
- * Live playground: drag stiffness / damping and watch the morph respond in
- * real time. The spring config is passed straight through the `ease` prop.
+ * Calendar-day stepper: an on-brand take on the glass-buttons date selector.
+ * The chevrons step the day and the label morphs from one value to the next.
  */
-function SpringPlayground() {
-  const [stiffness, setStiffness] = useState(180);
-  const [damping, setDamping] = useState(12);
-  const [wordIndex, setWordIndex] = useState(0);
+function CalendarStepper() {
+  const [offset, setOffset] = useState(0);
 
-  // Cycle words continuously so the current spring is always on display.
-  useEffect(() => {
-    const id = setInterval(() => {
-      setWordIndex((i) => (i + 1) % WORDS.length);
-    }, 1500);
-    return () => clearInterval(id);
-  }, []);
-
-  // Derive the same easing/duration metamorphosis will use, for the readout.
-  const { duration } = useMemo(
-    () => spring({ stiffness, damping }),
-    [stiffness, damping],
-  );
-
-  // Damping ratio — < 1 oscillates (bouncy), >= 1 settles without overshoot.
-  const zeta = damping / (2 * Math.sqrt(stiffness));
+  const date = useMemo(() => {
+    const d = startOfToday();
+    d.setDate(d.getDate() + offset);
+    return d;
+  }, [offset]);
 
   return (
     <section className="demo">
       <div className="demo__container wide">
-        <TextMorph className="demo__text" ease={{ stiffness, damping }}>
-          {WORDS[wordIndex]}
-        </TextMorph>
+        <div className="stepper">
+          <button
+            type="button"
+            className="stepper__button stepper__button--prev"
+            onClick={() => setOffset((o) => o - 1)}
+            aria-label="Previous day"
+          >
+            <ArrowIcon />
+          </button>
 
-        <div className="dialkit-root demo__panel" data-theme="light">
-          <div className="playground__readout">
-            <span>
-              duration{" "}
-              <TextMorph
-                className="playground__readout-value"
-                granularity="grapheme"
-              >
-                {`${duration}ms`}
-              </TextMorph>
-            </span>
-            <span>
-              ζ{" "}
-              <TextMorph
-                className="playground__readout-value"
-                granularity="grapheme"
-              >
-                {zeta.toFixed(2)}
-              </TextMorph>
-            </span>
+          <div className="stepper__display" aria-live="polite">
+            <TextMorph className="stepper__label" {...tickerProps()}>
+              {dayLabel(offset, date)}
+            </TextMorph>
+            <TextMorph className="stepper__detail" {...tickerProps()}>
+              {dayDetail(offset, date)}
+            </TextMorph>
           </div>
 
-          <div className="demo__dials">
-            <Slider
-              label="Stiffness"
-              value={stiffness}
-              min={20}
-              max={400}
-              step={5}
-              onChange={setStiffness}
-            />
-            <Slider
-              label="Damping"
-              value={damping}
-              min={2}
-              max={40}
-              step={1}
-              onChange={setDamping}
-            />
-          </div>
+          <button
+            type="button"
+            className="stepper__button stepper__button--next"
+            onClick={() => setOffset((o) => o + 1)}
+            aria-label="Next day"
+          >
+            <ArrowIcon />
+          </button>
         </div>
       </div>
     </section>
