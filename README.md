@@ -10,7 +10,6 @@ As a git dependency (no npm publish needed):
 
 ```bash
 pnpm add github:olicarignan/metamorphosis
-# or pin a commit/tag:  pnpm add github:olicarignan/metamorphosis#v0.0.9
 ```
 
 The package has a `prepare` script, so the consumer's install builds `dist/`
