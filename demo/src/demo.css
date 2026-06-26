@@ -467,6 +467,11 @@ a {
   color: rgba(255, 255, 255, 0.35);
 }
 
+/* Icon morph demo only: a little extra breathing room below the button. */
+.demo--icon .demo__label {
+  top: calc(50% + 3.4rem);
+}
+
 .demo__hero,
 .demo__number,
 .demo__text {

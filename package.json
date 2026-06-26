@@ -11,6 +11,11 @@
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
     },
+    "./icon-morph": {
+      "types": "./dist/icon-morph/index.d.ts",
+      "import": "./dist/icon-morph/index.mjs",
+      "require": "./dist/icon-morph/index.js"
+    },
     "./react": {
       "types": "./dist/react/index.d.ts",
       "import": "./dist/react/index.mjs",
@@ -24,6 +29,8 @@
   "keywords": [
     "react",
     "text",
+    "icon",
+    "svg",
     "animation",
     "morph"
   ],

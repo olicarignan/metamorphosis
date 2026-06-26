@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { TextMorph } from "../../src/react";
+import { TextMorph, IconMorph } from "../../src/react";
 import { IconLink } from "./IconLink";
 import { cascadeProps } from "./cascade";
 
@@ -72,6 +72,9 @@ export default function App() {
               </TextMorph>
             </div>
           </section>
+
+          {/* Icon morphing — every icon is three lines; tap to morph */}
+          <IconMorphDemo />
 
           {/* Day stepper — step through calendar days, morphing the label */}
           <CalendarStepper />
@@ -336,6 +339,52 @@ function dayDetail(offset, date) {
     month: "short",
     day: "numeric",
   });
+}
+
+// Each icon is exactly three SVG lines, so any of these morphs smoothly into
+// the next. The arrows share one shape and only differ by rotation; the others
+// move points and collapse unused lines to the center.
+const ICON_SEQUENCE = [
+  "menu",
+  "close",
+  "plus",
+  "minus",
+  "equals",
+  "check",
+  "play",
+  "pause",
+  "arrow-up",
+  "arrow-right",
+  "arrow-down",
+  "arrow-left",
+  "chevron-down",
+];
+
+/**
+ * Icon morph showcase. Tapping the button advances through the sequence; the
+ * single three-line icon morphs from whichever shape it is into the next one.
+ */
+function IconMorphDemo() {
+  const [i, setI] = useState(0);
+  const name = ICON_SEQUENCE[i];
+
+  return (
+    <section className="demo demo--icon">
+      <div className="demo__container wide">
+        <span className="demo__label">Icon morph</span>
+        <div className="stepper">
+          <button
+            type="button"
+            className="stepper__button"
+            onClick={() => setI((n) => (n + 1) % ICON_SEQUENCE.length)}
+            aria-label={`Morph to next icon (currently ${name})`}
+          >
+            <IconMorph name={name} size={26} strokeWidth={2} />
+          </button>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 /**
