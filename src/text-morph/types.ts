@@ -17,24 +17,24 @@ export interface TextMorphOptions {
   ease?: string | SpringParams;
   granularity?: Granularity;
   /**
-   * Use the "ticker" animation instead of the default morph: a numericText-style
+   * Use the "numbers" animation instead of the default letters morph: a numericText-style
    * vertical roll where entering segments rise up from below and fade in,
    * exiting segments roll up and out, with no scale and a left-to-right stagger.
    * The slide distance scales with the element's font size automatically.
    *
    * `enterSlide` and `stagger` below override the auto-derived values when set.
    */
-  ticker?: boolean;
+  numbers?: boolean;
   /**
    * Pixels that entering segments slide up from as they fade in. Overrides the
-   * distance `ticker` derives from font size. When set on its own (without
-   * `ticker`) it still enables the slide; `0` keeps the default behavior (new
+   * distance `numbers` derives from font size. When set on its own (without
+   * `numbers`) it still enables the slide; `0` keeps the default behavior (new
    * segments emerge from their nearest anchor).
    */
   enterSlide?: number;
   /**
    * Milliseconds of delay added per entering segment, staggering entrances
-   * left to right. Overrides the `ticker` default; `0` disables the stagger.
+   * left to right. Overrides the `numbers` default; `0` disables the stagger.
    */
   stagger?: number;
   disabled?: boolean;

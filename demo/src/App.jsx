@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { TextMorph } from "../../src/react";
 import { IconLink } from "./IconLink";
-import { tickerProps } from "./ticker";
+import { numbersProps } from "./numbers";
 
 const WORDS = [
   "transform",
@@ -55,14 +55,14 @@ export default function App() {
         <div className="demos">
           <section className="demo">
             <div className="demo__container wide">
-              <span className="demo__label">Default morph</span>
+              <span className="demo__label">Letters</span>
               <TextMorph className="demo__text">{WORDS[wordIndex]}</TextMorph>
             </div>
           </section>
           <section className="demo">
             <div className="demo__container wide">
-              <span className="demo__label">Ticker</span>
-              <TextMorph className="demo__text" {...tickerProps()}>
+              <span className="demo__label">Numbers</span>
+              <TextMorph className="demo__text" {...numbersProps()}>
                 {clockFormat(now)}
               </TextMorph>
             </div>
@@ -341,10 +341,10 @@ function CalendarStepper() {
           </button>
 
           <div className="stepper__display" aria-live="polite">
-            <TextMorph className="stepper__label" {...tickerProps()}>
+            <TextMorph className="stepper__label" {...numbersProps()}>
               {dayLabel(offset, date)}
             </TextMorph>
-            <TextMorph className="stepper__detail" {...tickerProps()}>
+            <TextMorph className="stepper__detail" {...numbersProps()}>
               {dayDetail(offset, date)}
             </TextMorph>
           </div>
