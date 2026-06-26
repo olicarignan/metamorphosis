@@ -1,7 +1,7 @@
 import { useRef, useState, useCallback, useEffect } from "react";
 import { motion, useMotionValue, useTransform, animate } from "motion/react";
 import { TextMorph } from "../../src/react";
-import { tickerProps } from "./ticker";
+import { cascadeProps } from "./cascade";
 
 // ── Math helpers (ported from dialkit's shortcut-utils) ──
 
@@ -449,7 +449,7 @@ export function Slider({
             onMouseDown={(e) => isValueEditable && e.stopPropagation()}
             style={{ cursor: isValueEditable ? "text" : "default" }}
           >
-            <TextMorph as="span" {...tickerProps()}>
+            <TextMorph as="span" {...cascadeProps()}>
               {displayValue}
             </TextMorph>
           </span>

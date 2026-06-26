@@ -1184,6 +1184,19 @@ a {
   color: #fff;
 }
 
+/* Usage snippet: relative wrapper so the copy button can anchor to the top
+   right of the code block (the pre itself clips, so the button sits outside). */
+.usage {
+  position: relative;
+}
+
+.install__copy--corner {
+  position: absolute;
+  top: 0.8rem;
+  right: 0.8rem;
+  z-index: 2;
+}
+
 .credits {
   display: flex;
   flex-direction: column;

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { TextMorph } from "../../src/react";
 import { IconLink } from "./IconLink";
-import { numbersProps } from "./numbers";
+import { cascadeProps } from "./cascade";
 
 const WORDS = [
   "transform",
@@ -21,6 +21,11 @@ const INSTALL = [
   { id: "bun", cmd: "bun i github:olicarignan/metamorphosis" },
   { id: "yarn", cmd: "yarn add github:olicarignan/metamorphosis" },
 ];
+
+// Usage snippet — shared by the rendered code block and its copy button.
+const USAGE_CODE = `import { TextMorph } from "metamorphosis/react";
+
+<TextMorph>{value}</TextMorph>;`;
 
 export default function App() {
   const [wordIndex, setWordIndex] = useState(0);
@@ -55,14 +60,14 @@ export default function App() {
         <div className="demos">
           <section className="demo">
             <div className="demo__container wide">
-              <span className="demo__label">Letters</span>
+              <span className="demo__label">Morph</span>
               <TextMorph className="demo__text">{WORDS[wordIndex]}</TextMorph>
             </div>
           </section>
           <section className="demo">
             <div className="demo__container wide">
-              <span className="demo__label">Numbers</span>
-              <TextMorph className="demo__text" {...numbersProps()}>
+              <span className="demo__label">Cascade</span>
+              <TextMorph className="demo__text" {...cascadeProps()}>
                 {clockFormat(now)}
               </TextMorph>
             </div>
@@ -95,11 +100,16 @@ export default function App() {
             <h2>Install</h2>
             <InstallTabs />
             <h3>Usage</h3>
-            <pre>
-              <code>{`import { TextMorph } from "metamorphosis/react";
-
-<TextMorph>{value}</TextMorph>;`}</code>
-            </pre>
+            <div className="usage">
+              <pre>
+                <code>{USAGE_CODE}</code>
+              </pre>
+              <CopyButton
+                className="install__copy--corner"
+                text={USAGE_CODE}
+                label="Copy usage code"
+              />
+            </div>
           </section>
         </div>
 
@@ -158,21 +168,6 @@ function RevealTitle({ children }) {
  */
 function InstallTabs() {
   const [active, setActive] = useState(0);
-  const [copied, setCopied] = useState(false);
-  const resetTimer = useRef(null);
-
-  useEffect(() => () => clearTimeout(resetTimer.current), []);
-
-  const copyCommand = async () => {
-    try {
-      await navigator.clipboard.writeText(INSTALL[active].cmd);
-      setCopied(true);
-      clearTimeout(resetTimer.current);
-      resetTimer.current = setTimeout(() => setCopied(false), 1500);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
-  };
 
   return (
     <div className="install">
@@ -188,10 +183,7 @@ function InstallTabs() {
             role="tab"
             aria-selected={i === active}
             className={i === active ? "is-active" : undefined}
-            onClick={() => {
-              setActive(i);
-              setCopied(false);
-            }}
+            onClick={() => setActive(i)}
           >
             <span className="install__tab-label">{m.id}</span>
           </button>
@@ -205,23 +197,55 @@ function InstallTabs() {
           </TextMorph>
         </div>
 
-        <button
-          type="button"
-          className={`install__copy${copied ? " is-copied" : ""}`}
-          onClick={copyCommand}
-          aria-label={copied ? "Copied" : "Copy install command"}
-        >
-          <span className="install__copy-icons">
-            <span className="install__copy-icon install__copy-icon--copy">
-              <CopyIcon />
-            </span>
-            <span className="install__copy-icon install__copy-icon--check">
-              <CheckIcon />
-            </span>
-          </span>
-        </button>
+        <CopyButton
+          key={active}
+          text={INSTALL[active].cmd}
+          label="Copy install command"
+        />
       </div>
     </div>
+  );
+}
+
+/**
+ * Copy-to-clipboard button whose copy icon morphs into a checkmark on success,
+ * then back after a beat. Shared by the install command and the usage snippet.
+ */
+function CopyButton({ text, label = "Copy", className = "" }) {
+  const [copied, setCopied] = useState(false);
+  const resetTimer = useRef(null);
+
+  useEffect(() => () => clearTimeout(resetTimer.current), []);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      clearTimeout(resetTimer.current);
+      resetTimer.current = setTimeout(() => setCopied(false), 1500);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      className={`install__copy${copied ? " is-copied" : ""}${
+        className ? ` ${className}` : ""
+      }`}
+      onClick={copy}
+      aria-label={copied ? "Copied" : label}
+    >
+      <span className="install__copy-icons">
+        <span className="install__copy-icon install__copy-icon--copy">
+          <CopyIcon />
+        </span>
+        <span className="install__copy-icon install__copy-icon--check">
+          <CheckIcon />
+        </span>
+      </span>
+    </button>
   );
 }
 
@@ -341,10 +365,10 @@ function CalendarStepper() {
           </button>
 
           <div className="stepper__display" aria-live="polite">
-            <TextMorph className="stepper__label" {...numbersProps()}>
+            <TextMorph className="stepper__label" {...cascadeProps()}>
               {dayLabel(offset, date)}
             </TextMorph>
-            <TextMorph className="stepper__detail" {...numbersProps()}>
+            <TextMorph className="stepper__detail" {...cascadeProps()}>
               {dayDetail(offset, date)}
             </TextMorph>
           </div>

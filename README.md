@@ -60,9 +60,9 @@ These apply to both `<TextMorph>` and the core `MorphController`.
 | `ease`                 | `string \| SpringParams`      | `cubic-bezier(0.22, 1, 0.36, 1)`   | CSS easing string, or a spring config (see below) that derives easing + duration.           |
 | `granularity`          | `"auto" \| "word" \| "grapheme"` | `"auto"`                        | How text is segmented. `auto` = words if there's a space, else graphemes.                    |
 | `scale`                | `boolean`                     | `true`                             | Scale segments as they enter/exit, not just translate them.                                 |
-| `numbers`              | `boolean`                     | `false`                            | Use the "numbers" animation (see below) instead of the default letters morph.                |
-| `enterSlide`           | `number` (px)                 | —                                  | Override the numbers animation's vertical slide distance. Set on its own to enable the slide.|
-| `stagger`              | `number` (ms)                 | —                                  | Override the numbers animation's per-segment stagger. `0` enters all new segments at once.   |
+| `cascade`              | `boolean`                     | `false`                            | Use the "cascade" animation (see below) instead of the default morph.                        |
+| `enterSlide`           | `number` (px)                 | —                                  | Override the cascade animation's vertical slide distance. Set on its own to enable the slide.|
+| `stagger`              | `number` (ms)                 | —                                  | Override the cascade animation's per-segment stagger. `0` enters all new segments at once.   |
 | `disabled`             | `boolean`                     | `false`                            | Skip animation and set text content directly.                                               |
 | `respectReducedMotion` | `boolean`                     | `true`                             | Honor `prefers-reduced-motion`; when reduced, behaves as if `disabled`.                      |
 | `locale`               | `Intl.LocalesArgument`        | `"en"`                             | Locale used to segment text into graphemes/words (`Intl.Segmenter`).                         |
@@ -81,27 +81,27 @@ React-only props: `as` (element type, default `"span"`), `className`, `style`.
 | `mass`      | `number` | `1`     | Mass of the moving body.                                |
 | `precision` | `number` | `0.001` | Settle threshold used to compute the derived duration.  |
 
-### Numbers animation
+### Cascade animation
 
-Set `numbers` to swap the default letters morph for a vertical roll modeled on SwiftUI's
+Set `cascade` to swap the default morph for a vertical roll modeled on SwiftUI's
 `numericText` content transition — ideal for counters, clocks, and number
 pickers. Entering segments rise up from below and fade in, exiting segments roll
 up and out, there's no scale, and entrances are staggered left to right:
 
 ```jsx
-<TextMorph numbers granularity="grapheme" ease={{ stiffness: 632, damping: 30 }}>
+<TextMorph cascade granularity="grapheme" ease={{ stiffness: 632, damping: 30 }}>
   {value}
 </TextMorph>
 ```
 
-The roll distance is derived from the element's font size, so the same `numbers`
+The roll distance is derived from the element's font size, so the same `cascade`
 prop looks right at any type scale. Pair it with a spring `ease` for the bounce.
 For fine control, `enterSlide` (px) and `stagger` (ms) override the auto-derived
 values:
 
 ```jsx
 {/* a taller roll, no stagger */}
-<TextMorph numbers enterSlide={28} stagger={0}>{value}</TextMorph>
+<TextMorph cascade enterSlide={28} stagger={0}>{value}</TextMorph>
 ```
 
 ## The `useTextMorph` hook
