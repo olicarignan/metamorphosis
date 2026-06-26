@@ -1195,6 +1195,11 @@ a {
   position: relative;
 }
 
+/* Each code line is its own morph; stack them so line breaks are preserved. */
+.usage__line {
+  display: block;
+}
+
 .install__copy--corner {
   position: absolute;
   top: 0.8rem;
