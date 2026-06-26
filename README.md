@@ -1,8 +1,12 @@
 # metamorphosis
 
-A dependency-free **animated text component** — text that morphs character-by-
-character (or word-by-word) between values. This package ships the core
-`MorphController` plus a thin React adapter (`TextMorph`, `useTextMorph`).
+A dependency-free **morphing animation library**. It ships two morphers:
+
+- **Text** — text that morphs character-by-character (or word-by-word) between
+  values. Core `MorphController` plus a React adapter (`TextMorph`, `useTextMorph`).
+- **Icons** — a three-line icon component where any icon smoothly morphs into any
+  other. React adapter (`IconMorph`, `useIconMorph`) plus a framework-agnostic
+  `IconMorphController`.
 
 ## Install
 
@@ -139,6 +143,96 @@ controller.update("world");
 `DEFAULT_TEXT_MORPH_OPTIONS` and `DEFAULT_AS` are also exported if you need the
 defaults at runtime.
 
+## Icon morphing
+
+`IconMorph` renders an icon and smoothly morphs it into another whenever its
+`name` changes:
+
+```jsx
+import { IconMorph } from "metamorphosis/react";
+
+<IconMorph name={open ? "close" : "menu"} />;
+```
+
+Every icon is exactly **three SVG lines** in a shared 24×24 box, so any icon can
+morph into any other: each of the three line segments interpolates from the old
+position to the new one. Icons that need fewer lines collapse the extras to an
+invisible point at the center, and icons that are the same shape at different
+rotations (like arrows) **rotate** instead of moving points — taking the shortest
+way around.
+
+### Built-in icons
+
+`menu`, `close`, `plus`, `minus`, `equals`, `check`, `play`, `pause`,
+`arrow-up` / `arrow-right` / `arrow-down` / `arrow-left`, and
+`chevron-up` / `chevron-right` / `chevron-down` / `chevron-left`.
+
+```jsx
+import { iconNames } from "metamorphosis/icon-morph";
+
+iconNames(); // -> ["menu", "close", "plus", ...]
+```
+
+### Custom icons
+
+Register your own three-line icon (a fourth line is ignored; fewer are padded
+with collapsed center points). Coordinates are in the 24×24 box, `rotation` is in
+degrees:
+
+```js
+import { registerIcon } from "metamorphosis/icon-morph";
+
+registerIcon("divide", {
+  lines: [
+    [4, 12, 20, 12], // the bar
+    [12, 6, 12, 6],  // top dot (a short, near-zero segment)
+    [12, 18, 12, 18] // bottom dot
+  ],
+});
+
+<IconMorph name="divide" />;
+```
+
+Or pass a definition inline with the `icon` prop (the `name` is then just an
+identity key used to detect changes):
+
+```jsx
+<IconMorph name="my-shape" icon={{ lines: [[4, 4, 20, 20], [20, 4, 4, 20]], rotation: 0 }} />;
+```
+
+### Icon props
+
+| Prop                   | Type                       | Default          | Description                                              |
+| ---------------------- | -------------------------- | ---------------- | -------------------------------------------------------- |
+| `name`                 | `string`                   | —                | Built-in/registered icon to show. Morphs when it changes.|
+| `icon`                 | `IconDef`                  | —                | Inline definition; used instead of looking up `name`.    |
+| `size`                 | `number` (px)              | `24`             | Rendered square size.                                    |
+| `strokeWidth`          | `number`                   | `2`              | Stroke width in the 24-unit icon space.                  |
+| `color`                | `string`                   | `"currentColor"` | Stroke color.                                            |
+| `duration`             | `number` (ms)              | `400`            | Morph duration. Ignored when `ease` is a spring.         |
+| `ease`                 | `string \| SpringParams`   | ease-out         | CSS easing string, or a spring config (see above).       |
+| `disabled`             | `boolean`                  | `false`          | Swap instantly with no animation.                        |
+| `respectReducedMotion` | `boolean`                  | `true`           | Honor `prefers-reduced-motion`.                          |
+| `onAnimationStart`     | `() => void`               | —                | Called when a morph begins (not on initial render).      |
+| `onAnimationComplete`  | `() => void`               | —                | Called when a morph finishes.                            |
+
+React-only props: `as` (host element, default `"span"`), `className`, `style`.
+
+### Core (framework-agnostic)
+
+```js
+import { IconMorphController } from "metamorphosis/icon-morph";
+
+const icon = new IconMorphController();
+icon.attach(element, { size: 28, ease: { stiffness: 200, damping: 14 } });
+icon.update("menu");
+icon.update("close"); // morphs
+// icon.destroy() to tear down
+```
+
+There's also a `useIconMorph` hook mirroring `useTextMorph` for full control over
+the host element.
+
 ## Develop
 
 ```bash
@@ -148,7 +242,8 @@ pnpm dev        # watch mode
 ```
 
 The `demo/` directory is a Vite app showcasing every prop (granularity, spring
-presets, a live stiffness/damping playground, and copy-to-clipboard morphs).
+presets, a live stiffness/damping playground, copy-to-clipboard morphs, and the
+three-line icon morph).
 
 ```bash
 cd demo && pnpm install && pnpm dev

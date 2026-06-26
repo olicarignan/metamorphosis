@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { TextMorph } from "../../src/react";
+import { TextMorph, IconMorph } from "../../src/react";
 import { IconLink } from "./IconLink";
 import { cascadeProps } from "./cascade";
 
@@ -22,10 +22,23 @@ const INSTALL = [
   { id: "yarn", cmd: "yarn add github:olicarignan/metamorphosis" },
 ];
 
-// Usage snippet — shared by the rendered code block and its copy button.
-const USAGE_CODE = `import { TextMorph } from "metamorphosis/react";
+// Usage snippets — the pills in the usage section switch between them.
+const USAGE = [
+  {
+    id: "text",
+    label: "Text",
+    code: `import { TextMorph } from "metamorphosis/react";
 
-<TextMorph>{value}</TextMorph>;`;
+<TextMorph>{value}</TextMorph>;`,
+  },
+  {
+    id: "icon",
+    label: "Icon",
+    code: `import { IconMorph } from "metamorphosis/react";
+
+<IconMorph name={open ? "close" : "menu"} />;`,
+  },
+];
 
 export default function App() {
   const [wordIndex, setWordIndex] = useState(0);
@@ -53,14 +66,14 @@ export default function App() {
         <header className="page__header">
           <RevealTitle>Metamorphosis</RevealTitle>
           <p className="page__subtitle">
-            A dependency-free text animation library
+            A dependency-free morphing animation library
           </p>
         </header>
 
         <div className="demos">
           <section className="demo">
             <div className="demo__container wide">
-              <span className="demo__label">Morph</span>
+              <span className="demo__label">Text Morph</span>
               <TextMorph className="demo__text">{WORDS[wordIndex]}</TextMorph>
             </div>
           </section>
@@ -72,6 +85,9 @@ export default function App() {
               </TextMorph>
             </div>
           </section>
+
+          {/* Icon morphing — every icon is three lines; tap to morph */}
+          <IconMorphDemo />
 
           {/* Day stepper — step through calendar days, morphing the label */}
           <CalendarStepper />
@@ -100,16 +116,7 @@ export default function App() {
             <h2>Install</h2>
             <InstallTabs />
             <h3>Usage</h3>
-            <div className="usage">
-              <pre>
-                <code>{USAGE_CODE}</code>
-              </pre>
-              <CopyButton
-                className="install__copy--corner"
-                text={USAGE_CODE}
-                label="Copy usage code"
-              />
-            </div>
+            <UsageTabs />
           </section>
         </div>
 
@@ -208,6 +215,55 @@ function InstallTabs() {
 }
 
 /**
+ * Usage snippet with pills to switch between the text-morph and icon-morph
+ * examples. Selecting a pill swaps the rendered code and its copy target.
+ */
+function UsageTabs() {
+  const [active, setActive] = useState(0);
+  const code = USAGE[active].code;
+  const lines = code.split("\n");
+
+  return (
+    <div className="install">
+      <div className="install__tabs" role="tablist" aria-label="Usage example">
+        {USAGE.map((u, i) => (
+          <button
+            key={u.id}
+            type="button"
+            role="tab"
+            aria-selected={i === active}
+            className={i === active ? "is-active" : undefined}
+            onClick={() => setActive(i)}
+          >
+            <span className="install__tab-label">{u.label}</span>
+          </button>
+        ))}
+      </div>
+
+      <div className="usage">
+        <pre>
+          {/* One TextMorph per line so switching pills morphs the code, while
+              the line breaks are preserved (a single morph would collapse them). */}
+          <code>
+            {lines.map((line, i) => (
+              <span key={i} className="usage__line">
+                <TextMorph granularity="grapheme">{line || " "}</TextMorph>
+              </span>
+            ))}
+          </code>
+        </pre>
+        <CopyButton
+          key={active}
+          className="install__copy--corner"
+          text={code}
+          label="Copy usage code"
+        />
+      </div>
+    </div>
+  );
+}
+
+/**
  * Copy-to-clipboard button whose copy icon morphs into a checkmark on success,
  * then back after a beat. Shared by the install command and the usage snippet.
  */
@@ -248,12 +304,6 @@ function CopyButton({ text, label = "Copy", className = "" }) {
     </button>
   );
 }
-
-const GitHubIcon = () => (
-  <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true">
-    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z" />
-  </svg>
-);
 
 const CopyIcon = () => (
   <svg
@@ -336,6 +386,52 @@ function dayDetail(offset, date) {
     month: "short",
     day: "numeric",
   });
+}
+
+// Each icon is exactly three SVG lines, so any of these morphs smoothly into
+// the next. The arrows share one shape and only differ by rotation; the others
+// move points and collapse unused lines to the center.
+const ICON_SEQUENCE = [
+  "menu",
+  "close",
+  "plus",
+  "minus",
+  "equals",
+  "check",
+  "play",
+  "pause",
+  "arrow-up",
+  "arrow-right",
+  "arrow-down",
+  "arrow-left",
+  "chevron-down",
+];
+
+/**
+ * Icon morph showcase. Tapping the button advances through the sequence; the
+ * single three-line icon morphs from whichever shape it is into the next one.
+ */
+function IconMorphDemo() {
+  const [i, setI] = useState(0);
+  const name = ICON_SEQUENCE[i];
+
+  return (
+    <section className="demo demo--icon">
+      <div className="demo__container wide">
+        <span className="demo__label">Icon Morph</span>
+        <div className="stepper">
+          <button
+            type="button"
+            className="stepper__button"
+            onClick={() => setI((n) => (n + 1) % ICON_SEQUENCE.length)}
+            aria-label={`Morph to next icon (currently ${name})`}
+          >
+            <IconMorph name={name} size={26} strokeWidth={2} />
+          </button>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 /**

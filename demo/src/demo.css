@@ -467,6 +467,11 @@ a {
   color: rgba(255, 255, 255, 0.35);
 }
 
+/* Icon morph demo only: a little extra breathing room below the button. */
+.demo--icon .demo__label {
+  top: calc(50% + 3.4rem);
+}
+
 .demo__hero,
 .demo__number,
 .demo__text {
@@ -1188,6 +1193,11 @@ a {
    right of the code block (the pre itself clips, so the button sits outside). */
 .usage {
   position: relative;
+}
+
+/* Each code line is its own morph; stack them so line breaks are preserved. */
+.usage__line {
+  display: block;
 }
 
 .install__copy--corner {

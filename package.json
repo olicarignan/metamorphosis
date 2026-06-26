@@ -1,7 +1,7 @@
 {
   "name": "metamorphosis",
   "version": "0.0.9",
-  "description": "Dependency-free animated text component (text morphing) — core controller + React adapter.",
+  "description": "Dependency-free morphing animation library — morphing text and three-line icons. Framework-agnostic core + React adapters.",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -10,6 +10,11 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.mjs",
       "require": "./dist/index.js"
+    },
+    "./icon-morph": {
+      "types": "./dist/icon-morph/index.d.ts",
+      "import": "./dist/icon-morph/index.mjs",
+      "require": "./dist/icon-morph/index.js"
     },
     "./react": {
       "types": "./dist/react/index.d.ts",
@@ -23,9 +28,17 @@
   "sideEffects": false,
   "keywords": [
     "react",
-    "text",
     "animation",
-    "morph"
+    "morph",
+    "morphing",
+    "text-morph",
+    "icon-morph",
+    "icon-morphing",
+    "text",
+    "icon",
+    "svg",
+    "spring",
+    "transition"
   ],
   "scripts": {
     "build": "tsup",
