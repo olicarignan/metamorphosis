@@ -38,15 +38,15 @@ export const DEFAULT_TEXT_MORPH_OPTIONS = {
   scale: true,
   ease: "cubic-bezier(0.22, 1, 0.36, 1)",
   granularity: "auto",
-  ticker: false,
+  cascade: false,
   disabled: false,
   respectReducedMotion: true,
 } as const satisfies Omit<TextMorphOptions, "element">;
 
-// Ticker defaults: the vertical roll distance as a fraction of the element's
+// Cascade defaults: the vertical roll distance as a fraction of the element's
 // font size, and the per-segment stagger in milliseconds.
-const TICKER_SLIDE_RATIO = 0.5;
-const TICKER_STAGGER_MS = 28;
+const CASCADE_SLIDE_RATIO = 0.5;
+const CASCADE_STAGGER_MS = 28;
 
 export class TextMorph {
   private element: HTMLElement;
@@ -210,21 +210,21 @@ export class TextMorph {
   }
 
   // Vertical roll distance in px. An explicit `enterSlide` wins; otherwise
-  // `ticker` derives it from the element's font size; otherwise no slide.
+  // `cascade` derives it from the element's font size; otherwise no slide.
   private resolveSlide(): number {
-    const { enterSlide, ticker } = this.options;
+    const { enterSlide, cascade } = this.options;
     if (enterSlide != null) return enterSlide;
-    if (!ticker) return 0;
+    if (!cascade) return 0;
     const fontSize = parseFloat(getComputedStyle(this.element).fontSize);
-    return (Number.isFinite(fontSize) ? fontSize : 16) * TICKER_SLIDE_RATIO;
+    return (Number.isFinite(fontSize) ? fontSize : 16) * CASCADE_SLIDE_RATIO;
   }
 
-  // Per-segment stagger in ms. An explicit `stagger` wins; otherwise `ticker`
+  // Per-segment stagger in ms. An explicit `stagger` wins; otherwise `cascade`
   // applies the default stagger; otherwise none.
   private resolveStagger(): number {
-    const { stagger, ticker } = this.options;
+    const { stagger, cascade } = this.options;
     if (stagger != null) return stagger;
-    return ticker ? TICKER_STAGGER_MS : 0;
+    return cascade ? CASCADE_STAGGER_MS : 0;
   }
 
   private updateStyles(segments: Segment[]) {
