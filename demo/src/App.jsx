@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { TextMorph, IconMorph } from "../../src/react";
+import { TextMorph, IconMorph, NumberFlow } from "../../src/react";
 import { IconLink } from "./IconLink";
+import { Slider } from "./Slider";
+import { GlassGauge } from "./GlassGauge";
 import { cascadeProps } from "./cascade";
 
 const WORDS = [
@@ -13,6 +15,14 @@ const WORDS = [
 ];
 // Live clock — always the time with seconds, ticking each second.
 const clockFormat = (d) => d.toLocaleTimeString("en-GB", { hour12: false });
+
+// A gentler, slower morph for the install/usage snippets — a smooth, symmetric
+// ease-in-out (vs. the default snappy easeOutQuint) over a longer duration, so
+// characters glide in and out rather than snapping into place.
+const SMOOTH_MORPH = {
+  ease: "cubic-bezier(0.33, 1, 0.68, 1)",
+  duration: 350,
+};
 
 // Install command per package manager — the morph target for the install tabs.
 const INSTALL = [
@@ -38,13 +48,18 @@ const USAGE = [
 
 <IconMorph name={open ? "close" : "menu"} />;`,
   },
+  {
+    id: "flow",
+    label: "Flow",
+    code: `import { NumberFlow } from "metamorphosis/react";
+
+<NumberFlow value={count} />;`,
+  },
 ];
 
 export default function App() {
   const [wordIndex, setWordIndex] = useState(0);
   const [now, setNow] = useState(() => new Date());
-
-  const [text, setText] = useState("Type to morph");
 
   // Cycle the hero word on a timer.
   useEffect(() => {
@@ -77,6 +92,10 @@ export default function App() {
               <TextMorph className="demo__text">{WORDS[wordIndex]}</TextMorph>
             </div>
           </section>
+          {/* Cascade — step through calendar days, morphing the date label */}
+          <CalendarStepper />
+
+          {/* Cascade — the live clock, rolling each second */}
           <section className="demo">
             <div className="demo__container wide">
               <span className="demo__label">Cascade</span>
@@ -86,30 +105,11 @@ export default function App() {
             </div>
           </section>
 
+          {/* Flow — number-flow's digit reel; drag the slider to change it */}
+          <FlowGauge />
+
           {/* Icon morphing — every icon is three lines; tap to morph */}
           <IconMorphDemo />
-
-          {/* Day stepper — step through calendar days, morphing the label */}
-          <CalendarStepper />
-
-          {/* Morphs live as you type */}
-          <section className="demo">
-            <div className="demo__container wide">
-              <TextMorph className="demo__text" granularity="grapheme">
-                {text || " "}
-              </TextMorph>
-
-              <div className="dialkit-root demo__dock" data-theme="light">
-                <input
-                  className="dialkit-text-field"
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  placeholder="Type to morph…"
-                  aria-label="Text to morph"
-                />
-              </div>
-            </div>
-          </section>
 
           {/* Install / usage — sits inside the wireframe grid as a final row */}
           <section className="page__install">
@@ -199,7 +199,11 @@ function InstallTabs() {
 
       <div className="install__command">
         <div className="install__scroll">
-          <TextMorph className="install__code" granularity="grapheme">
+          <TextMorph
+            className="install__code"
+            granularity="grapheme"
+            {...SMOOTH_MORPH}
+          >
             {INSTALL[active].cmd}
           </TextMorph>
         </div>
@@ -247,7 +251,9 @@ function UsageTabs() {
           <code>
             {lines.map((line, i) => (
               <span key={i} className="usage__line">
-                <TextMorph granularity="grapheme">{line || " "}</TextMorph>
+                <TextMorph granularity="grapheme" {...SMOOTH_MORPH}>
+                  {line || " "}
+                </TextMorph>
               </span>
             ))}
           </code>
@@ -435,6 +441,39 @@ function IconMorphDemo() {
 }
 
 /**
+ * Flow — number-flow's digit reel. Drag the slider to set the value; each digit
+ * spins in place to its new value, the direction following the change, and a
+ * fast drag retargets smoothly without piling up. Powered by the vendored
+ * number-flow engine (separate from cascade).
+ */
+function FlowGauge() {
+  const [value, setValue] = useState(420);
+
+  return (
+    <section className="demo demo--flow">
+      <div className="demo__container wide">
+        <div className="flow-gauge">
+          <NumberFlow
+            className="demo__text demo__flow"
+            value={value}
+            locales="en-US"
+          />
+          <GlassGauge
+            label="Flow value"
+            value={value}
+            min={0}
+            max={1000}
+            step={1}
+            onChange={setValue}
+          />
+          <span className="demo__label">Flow</span>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
  * Calendar-day stepper: an on-brand take on the glass-buttons date selector.
  * The chevrons step the day and the label morphs from one value to the next.
  */
@@ -448,8 +487,9 @@ function CalendarStepper() {
   }, [offset]);
 
   return (
-    <section className="demo">
+    <section className="demo demo--stepper">
       <div className="demo__container wide">
+        <span className="demo__label">Cascade</span>
         <div className="stepper">
           <button
             type="button"

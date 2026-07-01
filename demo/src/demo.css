@@ -472,6 +472,12 @@ a {
   top: calc(50% + 3.4rem);
 }
 
+/* Stepper demo: the display is two rows (label + detail), so drop the caption
+   clear of the detail line instead of overlapping it. */
+.demo--stepper .demo__label {
+  top: calc(50% + 4.6rem);
+}
+
 .demo__hero,
 .demo__number,
 .demo__text {
@@ -494,6 +500,135 @@ a {
 .demo__text {
   font-size: 2.625rem;
   font-weight: 400;
+}
+
+/* number-flow paints its digits inside shadow DOM, where the .demo__text
+   gradient text-clip can't reach. Solid fill is the fallback; ::part re-applies
+   the same vertical gradient to the reel's digits and symbols so it matches the
+   other demos (which clip the gradient per character too). */
+.demo__flow {
+  -webkit-text-fill-color: var(--text-strong);
+  color: var(--text-strong);
+}
+
+.demo__flow::part(digit-num),
+.demo__flow::part(symbol-value) {
+  background-image: var(--text-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* Flow demo: stack the number readout, the glass gauge, then the caption — so
+   the gauge sits above the "Flow" label rather than docked at the bottom. */
+.flow-gauge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.8rem;
+  width: 100%;
+}
+
+/* In the Flow layout the caption rejoins the flow under the gauge instead of
+   floating at the demo's center. */
+.demo--flow .demo__label {
+  position: static;
+  top: auto;
+  left: auto;
+  right: auto;
+}
+
+/* Apple-style "liquid glass" gauge — a recessed frosted capsule with a lit fill
+   and a draggable glass pill. The pill wears the shared glass surface (the same
+   frosted look as the stepper buttons). */
+.glass-gauge {
+  position: relative;
+  width: min(34rem, calc(100% - 3.2rem));
+  height: 2.6rem;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  outline: none;
+}
+
+/* The carved well is a thin recessed line, centered vertically so the taller
+   pill stands proud of it. Kept separate from the root so the pill's drop
+   shadow can spill past the line. */
+.glass-gauge__well {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 7px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  overflow: hidden;
+  background: rgba(28, 38, 34, 0.5);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow:
+    inset 0 1px 2px rgba(0, 0, 0, 0.3),
+    inset 0 -0.5px 0.5px rgba(255, 255, 255, 0.08),
+    inset 0 0 0 0.6px rgba(0, 0, 0, 0.18);
+}
+
+.glass-gauge__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 999px;
+  background: var(--glass-highlight);
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+}
+
+.glass-gauge--dragging .glass-gauge__fill {
+  opacity: 1;
+}
+
+.glass-gauge__pill {
+  position: absolute;
+  top: 50%;
+  width: 28px;
+  height: 100%;
+  transform: translate(-50%, -50%) scale(1);
+  border-radius: 999px;
+  background: var(--glass-fill);
+  box-shadow: var(--glass-shadow), var(--glass-bevel);
+  overflow: hidden;
+  pointer-events: none;
+  transition: transform 0.16s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Frosted reflection pooling toward the bottom of the pill — mirrors the
+   stepper button's lit disc. */
+.glass-gauge__pill::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 5px);
+  transform: translate(-50%, -50%);
+  width: 72%;
+  height: 60%;
+  border-radius: 999px;
+  background: var(--glass-highlight);
+  filter: blur(3px);
+}
+
+.glass-gauge:hover .glass-gauge__pill {
+  transform: translate(-50%, -50%) scale(1.03);
+}
+
+.glass-gauge--dragging .glass-gauge__pill,
+.glass-gauge--dragging:hover .glass-gauge__pill {
+  transform: translate(-50%, -50%) scale(1.07);
+}
+
+/* Keyboard focus ring on the capsule. */
+.glass-gauge:focus-visible .glass-gauge__well {
+  box-shadow:
+    inset 0 1.5px 3px rgba(0, 0, 0, 0.3),
+    inset 0 -1px 1px rgba(255, 255, 255, 0.08),
+    0 0 0 2px rgba(255, 255, 255, 0.55);
 }
 
 /* Controls */
@@ -1198,6 +1333,12 @@ a {
 /* Each code line is its own morph; stack them so line breaks are preserved. */
 .usage__line {
   display: block;
+}
+
+/* Match the tab→code gap to the install command (the tabs' 0.8rem margin-bottom
+   alone); drop the pre's default top margin so both sections line up. */
+.usage pre {
+  margin-top: 0;
 }
 
 .install__copy--corner {

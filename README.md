@@ -1,9 +1,11 @@
 # metamorphosis
 
-A dependency-free **morphing animation library**. It ships two morphers:
+A dependency-free **morphing animation library**. It ships three morphers:
 
 - **Text** — text that morphs character-by-character (or word-by-word) between
   values. Core `MorphController` plus a React adapter (`TextMorph`, `useTextMorph`).
+- **Numbers** — a digit reel (`NumberFlow`) that spins each digit to a new value,
+  with full `Intl.NumberFormat` support (currency, percent, units, grouping…).
 - **Icons** — a three-line icon component where any icon smoothly morphs into any
   other. React adapter (`IconMorph`, `useIconMorph`) plus a framework-agnostic
   `IconMorphController`.
@@ -143,6 +145,90 @@ controller.update("world");
 `DEFAULT_TEXT_MORPH_OPTIONS` and `DEFAULT_AS` are also exported if you need the
 defaults at runtime.
 
+## Number flow
+
+`NumberFlow` animates a number to a new value, spinning each digit like a reel.
+Commas, currency, units, and decimals are all handled through `Intl.NumberFormat`.
+It's exported from the React adapter:
+
+```jsx
+import { NumberFlow } from "metamorphosis/react";
+
+<NumberFlow value={count} />;
+```
+
+Whenever `value` changes, the digits roll to the new number, the spin direction
+following the change. `value` may be a `number` or a numeric `string`.
+
+### Formatting
+
+Pass `format` (an `Intl.NumberFormat` options object) and/or `locales` to control
+how the number renders — currency, percent, unit, grouping, fraction digits, and
+so on. `prefix` / `suffix` add static text around it:
+
+```jsx
+<NumberFlow value={price} format={{ style: "currency", currency: "USD" }} />
+<NumberFlow value={ratio} format={{ style: "percent", maximumFractionDigits: 1 }} />
+<NumberFlow value={size} locales="en-US" suffix=" MB" />
+```
+
+`notation: "compact"` is supported; `"scientific"` and `"engineering"` are not.
+
+### Grouping several flows
+
+Wrap multiple `NumberFlow`s in `NumberFlowGroup` to keep their animations in
+lockstep when they update together:
+
+```jsx
+import { NumberFlow, NumberFlowGroup } from "metamorphosis/react";
+
+<NumberFlowGroup>
+  <NumberFlow value={hours} suffix="h" />
+  <NumberFlow value={minutes} suffix="m" />
+</NumberFlowGroup>;
+```
+
+### Continuous transitions
+
+The `continuous` plugin makes a digit appear to pass _through_ the numbers in
+between rather than cross-fading straight to the target:
+
+```jsx
+import { NumberFlow, continuous } from "metamorphosis/react";
+
+<NumberFlow value={value} plugins={[continuous]} />;
+```
+
+### Number props
+
+| Prop                      | Type                                | Default                                | Description                                                                            |
+| ------------------------- | ----------------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------- |
+| `value`                   | `number \| string`                  | —                                      | The number to display; animates whenever it changes.                                   |
+| `locales`                 | `Intl.LocalesArgument`              | runtime default                        | Locale(s) passed to `Intl.NumberFormat`.                                               |
+| `format`                  | `Intl.NumberFormat` options         | —                                      | Formatting options (currency, percent, unit, grouping, fraction digits…).              |
+| `prefix`                  | `string`                            | —                                      | Static text rendered before the number.                                                |
+| `suffix`                  | `string`                            | —                                      | Static text rendered after the number.                                                 |
+| `trend`                   | `number \| (old, value) => number`  | sign of the change                     | Force spin direction: `> 0` up, `< 0` down, `0` none.                                   |
+| `animated`                | `boolean`                           | `true`                                 | Set `false` to update the value with no animation.                                     |
+| `respectMotionPreference` | `boolean`                           | `true`                                 | Honor `prefers-reduced-motion`.                                                        |
+| `transformTiming`         | `EffectTiming`                      | 900ms spring-like `linear()`           | Timing for digit movement.                                                             |
+| `spinTiming`              | `EffectTiming`                      | falls back to `transformTiming`        | Timing for the vertical digit spin.                                                    |
+| `opacityTiming`           | `EffectTiming`                      | `{ duration: 450, easing: "ease-out" }`| Timing for entering/leaving parts fading in and out.                                   |
+| `digits`                  | `Record<number, { max?: number }>`  | —                                      | Per-place digit constraints (e.g. cap a position's max digit).                         |
+| `plugins`                 | `Plugin[]`                          | —                                      | Plugins such as `continuous`.                                                          |
+| `isolate`                 | `boolean`                           | `false`                                | Don't batch animation timing with other flows on the page.                            |
+| `willChange`              | `boolean`                           | `false`                                | Hint the browser to promote the animated layers.                                      |
+
+Also fires `onAnimationsStart` / `onAnimationsFinish` events and forwards standard
+HTML attributes (`className`, `style`, …). Exports: `NumberFlow` (default and
+named), `NumberFlowGroup`, `NumberFlowElement` (the underlying custom-element
+class), `continuous`, and the types `NumberFlowProps`, `Value`, `Format`, `Trend`.
+
+> NumberFlow is a port of [`number-flow`](https://github.com/barvian/number-flow),
+> vendored so the package stays dependency-free. It requires modern CSS
+> (`mod()`, `linear()` easing, `@property`); where unsupported it renders the
+> formatted value without animating.
+
 ## Icon morphing
 
 `IconMorph` renders an icon and smoothly morphs it into another whenever its
@@ -210,7 +296,7 @@ identity key used to detect changes):
 | `strokeWidth`          | `number`                   | `2`              | Stroke width in the 24-unit icon space.                  |
 | `color`                | `string`                   | `"currentColor"` | Stroke color.                                            |
 | `duration`             | `number` (ms)              | `400`            | Morph duration. Ignored when `ease` is a spring.         |
-| `ease`                 | `string \| SpringParams`   | ease-out         | CSS easing string, or a spring config (see above).       |
+| `ease`                 | `string \| SpringParams`   | `cubic-bezier(0.22, 1, 0.36, 1)` | CSS easing string, or a spring config (see above).       |
 | `disabled`             | `boolean`                  | `false`          | Swap instantly with no animation.                        |
 | `respectReducedMotion` | `boolean`                  | `true`           | Honor `prefers-reduced-motion`.                          |
 | `onAnimationStart`     | `() => void`               | —                | Called when a morph begins (not on initial render).      |
@@ -241,9 +327,10 @@ pnpm build      # tsup → dist/ (esm + cjs + d.ts)
 pnpm dev        # watch mode
 ```
 
-The `demo/` directory is a Vite app showcasing every prop (granularity, spring
-presets, a live stiffness/damping playground, copy-to-clipboard morphs, and the
-three-line icon morph).
+The `demo/` directory is a Vite app showcasing all three morphers: cycling text,
+the cascade roll (a calendar stepper and a live clock), a draggable number-flow
+gauge, the three-line icon morph, and copy-to-clipboard install/usage snippets
+that morph as you switch tabs.
 
 ```bash
 cd demo && pnpm install && pnpm dev
