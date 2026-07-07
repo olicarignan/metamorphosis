@@ -1,6 +1,6 @@
 import { ATTR_ROOT, ATTR_ITEM, ATTR_DEBUG } from "./constants";
 
-const TORPH_CSS = `
+const METAMORPHOSIS_CSS = `
 [${ATTR_ROOT}] {
   display: inline-block;
   position: relative;
@@ -33,8 +33,8 @@ export function addStyles() {
   if (styleEl) return;
 
   styleEl = document.createElement("style");
-  styleEl.dataset.torph = "true";
-  styleEl.textContent = TORPH_CSS;
+  styleEl.dataset.metamorphosis = "true";
+  styleEl.textContent = METAMORPHOSIS_CSS;
   document.head.appendChild(styleEl);
 }
 

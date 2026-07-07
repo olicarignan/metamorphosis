@@ -1,12 +1,12 @@
 "use client";
 
-// React wrapper for the vendored number-flow engine (src/number-flow). Ported
+// React wrapper for the vendored flow engine (src/flow). Ported
 // from @number-flow/react (MIT, © Maxwell Barvian) so the flow animation uses
 // the exact same digit-reel handling as the upstream project, kept dependency-
 // free. This is entirely separate from TextMorph's cascade.
 
 import * as React from "react";
-import NumberFlowLite, {
+import FlowLite, {
   type Value,
   type Format,
   type Props,
@@ -14,7 +14,7 @@ import NumberFlowLite, {
   formatToData,
   type Data,
   define,
-} from "../number-flow/lite";
+} from "../flow/lite";
 
 const BROWSER = typeof document !== "undefined";
 
@@ -24,7 +24,7 @@ const isReact19 = REACT_MAJOR >= 19;
 const OBSERVED_ATTRIBUTES = ["data", "digits"] as const;
 type ObservedAttribute = (typeof OBSERVED_ATTRIBUTES)[number];
 
-export class NumberFlowElement extends NumberFlowLite {
+export class FlowElement extends FlowLite {
   static observedAttributes = isReact19 ? [] : OBSERVED_ATTRIBUTES;
   attributeChangedCallback(
     attr: ObservedAttribute,
@@ -35,9 +35,9 @@ export class NumberFlowElement extends NumberFlowLite {
   }
 }
 
-define("number-flow-react", NumberFlowElement);
+define("flow-react", FlowElement);
 
-type BaseProps = React.HTMLAttributes<NumberFlowElement> &
+type BaseProps = React.HTMLAttributes<FlowElement> &
   Partial<Props> & {
     isolate?: boolean;
     willChange?: boolean;
@@ -45,8 +45,8 @@ type BaseProps = React.HTMLAttributes<NumberFlowElement> &
     onAnimationsFinish?: (e: CustomEvent<undefined>) => void;
   };
 
-type NumberFlowImplProps = BaseProps & {
-  innerRef: React.MutableRefObject<NumberFlowElement | undefined>;
+type FlowImplProps = BaseProps & {
+  innerRef: React.MutableRefObject<FlowElement | undefined>;
   group?: GroupContext;
   data: Data;
 };
@@ -88,28 +88,28 @@ function splitProps<T extends Record<string, any>>(
   ];
 }
 
-type NumberFlowImplState = {};
-type NumberFlowImplSnapshot = (() => void) | null;
+type FlowImplState = {};
+type FlowImplSnapshot = (() => void) | null;
 
 // A class component is required to use getSnapshotBeforeUpdate (FLIP timing).
-class NumberFlowImpl extends React.Component<
-  NumberFlowImplProps,
-  NumberFlowImplState,
-  NumberFlowImplSnapshot
+class FlowImpl extends React.Component<
+  FlowImplProps,
+  FlowImplState,
+  FlowImplSnapshot
 > {
-  constructor(props: NumberFlowImplProps) {
+  constructor(props: FlowImplProps) {
     super(props);
     this.handleRef = this.handleRef.bind(this);
   }
 
-  updateProperties(prevProps?: Readonly<NumberFlowImplProps>) {
+  updateProperties(prevProps?: Readonly<FlowImplProps>) {
     if (!this.el) return;
 
     this.el.batched = !this.props.isolate;
     const [nonData] = splitProps(this.props);
     Object.entries(nonData).forEach(([k, v]) => {
       // @ts-ignore
-      this.el![k] = v ?? NumberFlowElement.defaultProps[k];
+      this.el![k] = v ?? FlowElement.defaultProps[k];
     });
 
     if (prevProps?.onAnimationsStart)
@@ -143,7 +143,7 @@ class NumberFlowImpl extends React.Component<
     }
   }
 
-  override getSnapshotBeforeUpdate(prevProps: Readonly<NumberFlowImplProps>) {
+  override getSnapshotBeforeUpdate(prevProps: Readonly<FlowImplProps>) {
     this.updateProperties(prevProps);
     if (prevProps.data !== this.props.data) {
       if (this.props.group) {
@@ -159,16 +159,16 @@ class NumberFlowImpl extends React.Component<
   }
 
   override componentDidUpdate(
-    _: Readonly<NumberFlowImplProps>,
-    __: NumberFlowImplState,
-    didUpdate: NumberFlowImplSnapshot,
+    _: Readonly<FlowImplProps>,
+    __: FlowImplState,
+    didUpdate: FlowImplSnapshot,
   ) {
     didUpdate?.();
   }
 
-  private el?: NumberFlowElement;
+  private el?: FlowElement;
 
-  handleRef(el: NumberFlowElement) {
+  handleRef(el: FlowElement) {
     if (this.props.innerRef) this.props.innerRef.current = el;
     this.el = el;
   }
@@ -193,7 +193,7 @@ class NumberFlowImpl extends React.Component<
 
     return (
       // @ts-expect-error missing custom-element types
-      <number-flow-react
+      <flow-react
         ref={this.handleRef}
         data-will-change={willChange ? "" : undefined}
         class={className}
@@ -212,7 +212,7 @@ class NumberFlowImpl extends React.Component<
   }
 }
 
-export type NumberFlowProps = BaseProps & {
+export type FlowProps = BaseProps & {
   value: Value;
   locales?: Intl.LocalesArgument;
   format?: Format;
@@ -220,11 +220,11 @@ export type NumberFlowProps = BaseProps & {
   suffix?: string;
 };
 
-const NumberFlow = React.forwardRef<NumberFlowElement, NumberFlowProps>(
-  function NumberFlow({ value, locales, format, prefix, suffix, ...props }, _ref) {
+const Flow = React.forwardRef<FlowElement, FlowProps>(
+  function Flow({ value, locales, format, prefix, suffix, ...props }, _ref) {
     React.useImperativeHandle(_ref, () => ref.current!, []);
-    const ref = React.useRef<NumberFlowElement | undefined>(undefined);
-    const group = React.useContext(NumberFlowGroupContext);
+    const ref = React.useRef<FlowElement | undefined>(undefined);
+    const group = React.useContext(FlowGroupContext);
     group?.useRegister(ref);
 
     const localesString = React.useMemo(
@@ -242,34 +242,34 @@ const NumberFlow = React.forwardRef<NumberFlowElement, NumberFlowProps>(
     }, [value, localesString, formatString, prefix, suffix]);
 
     return (
-      <NumberFlowImpl {...props} group={group} data={data} innerRef={ref} />
+      <FlowImpl {...props} group={group} data={data} innerRef={ref} />
     );
   },
 );
 
-export default NumberFlow;
-export { NumberFlow };
+export default Flow;
+export { Flow };
 
-// NumberFlowGroup — keeps several NumberFlows animating in lockstep.
+// FlowGroup — keeps several Flows animating in lockstep.
 
 type GroupContext = {
   useRegister: (
-    ref: React.MutableRefObject<NumberFlowElement | undefined>,
+    ref: React.MutableRefObject<FlowElement | undefined>,
   ) => void;
   willUpdate: () => void;
   didUpdate: () => void;
 };
 
-const NumberFlowGroupContext = React.createContext<GroupContext | undefined>(
+const FlowGroupContext = React.createContext<GroupContext | undefined>(
   undefined,
 );
 
-export function NumberFlowGroup({ children }: { children: React.ReactNode }) {
+export function FlowGroup({ children }: { children: React.ReactNode }) {
   const flows = React.useRef(
-    new Set<React.MutableRefObject<NumberFlowElement | undefined>>(),
+    new Set<React.MutableRefObject<FlowElement | undefined>>(),
   );
   const updating = React.useRef(false);
-  const pending = React.useRef(new WeakMap<NumberFlowElement, boolean>());
+  const pending = React.useRef(new WeakMap<FlowElement, boolean>());
   const value = React.useMemo<GroupContext>(
     () => ({
       useRegister(ref) {
@@ -304,8 +304,8 @@ export function NumberFlowGroup({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <NumberFlowGroupContext.Provider value={value}>
+    <FlowGroupContext.Provider value={value}>
       {children}
-    </NumberFlowGroupContext.Provider>
+    </FlowGroupContext.Provider>
   );
 }

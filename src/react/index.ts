@@ -5,10 +5,10 @@ export { IconMorph, useIconMorph } from "./IconMorph";
 export type { IconMorphProps } from "./IconMorph";
 
 export {
-  default as NumberFlow,
-  NumberFlowGroup,
-  NumberFlowElement,
-} from "./NumberFlow";
-export type { NumberFlowProps } from "./NumberFlow";
-export type { Value, Format, Trend } from "../number-flow/lite";
-export { continuous } from "../number-flow/lite";
+  default as Flow,
+  FlowGroup,
+  FlowElement,
+} from "./Flow";
+export type { FlowProps } from "./Flow";
+export type { Value, Format, Trend } from "../flow/lite";
+export { continuous } from "../flow/lite";

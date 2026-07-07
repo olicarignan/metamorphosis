@@ -1,8 +1,8 @@
 import { max } from '../util/math'
 import type { Plugin } from '.'
-import type NumberFlowLite from '../lite'
+import type FlowLite from '../lite'
 
-const startingPos = new WeakMap<NumberFlowLite, number | undefined>()
+const startingPos = new WeakMap<FlowLite, number | undefined>()
 
 /**
  * Makes number transitions appear to pass through in between numbers.

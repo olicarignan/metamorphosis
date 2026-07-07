@@ -1,5 +1,5 @@
-export const ATTR_ROOT = "torph-root";
-export const ATTR_ITEM = "torph-item";
-export const ATTR_ID = "torph-id";
-export const ATTR_EXITING = "torph-exiting";
-export const ATTR_DEBUG = "torph-debug";
+export const ATTR_ROOT = "metamorphosis-root";
+export const ATTR_ITEM = "metamorphosis-item";
+export const ATTR_ID = "metamorphosis-id";
+export const ATTR_EXITING = "metamorphosis-exiting";
+export const ATTR_DEBUG = "metamorphosis-debug";

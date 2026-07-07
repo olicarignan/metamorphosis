@@ -23,10 +23,10 @@ export const prefersReducedMotion =
 		: null
 
 // Register animated vars:
-export const opacityDeltaVar = '--_number-flow-d-opacity'
-export const widthDeltaVar = '--_number-flow-d-width'
-export const dxVar = '--_number-flow-dx'
-export const deltaVar = '--_number-flow-d'
+export const opacityDeltaVar = '--_flow-d-opacity'
+export const widthDeltaVar = '--_flow-d-width'
+export const dxVar = '--_flow-dx'
+export const deltaVar = '--_flow-d'
 
 export const supportsAtProperty = (() => {
 	try {
@@ -69,9 +69,9 @@ export const supportsAtProperty = (() => {
 // https://expensive.toys/blog/blur-vignette
 
 // Use round() to avoid fractional pixels which fixes alignment in Safari:
-export const halfMaskHeight = `round(nearest, calc(var(--number-flow-mask-height, 0.25em) / 2), 1px)`
+export const halfMaskHeight = `round(nearest, calc(var(--flow-mask-height, 0.25em) / 2), 1px)`
 export const maskHeight = `calc(${halfMaskHeight} * 2)`
-const maskWidth = 'var(--number-flow-mask-width, 0.5em)'
+const maskWidth = 'var(--flow-mask-width, 0.5em)'
 const scaledMaskWidth = `calc(${maskWidth} / var(--scale-x))`
 
 const cornerGradient = `#000 0, transparent 71%` // or transparent ${maskWidth}

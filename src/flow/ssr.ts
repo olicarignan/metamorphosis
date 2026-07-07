@@ -41,11 +41,11 @@ const renderSection = (section: KeyedNumberPart[], part: string) =>
 	`<span part="${part}">${section.reduce((str, p) => str + renderPart(p), '')}</span>`
 
 export const renderFallbackStyles = (elementSuffix = '') => css`
-	:where(number-flow${elementSuffix}) {
+	:where(flow${elementSuffix}) {
 		line-height: 1;
 	}
 
-	number-flow${elementSuffix} > span {
+	flow${elementSuffix} > span {
 		font-kerning: none;
 		display: inline-block;
 		padding: ${maskHeight} 0;

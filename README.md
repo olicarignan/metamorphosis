@@ -4,7 +4,7 @@ A dependency-free **morphing animation library**. It ships three morphers:
 
 - **Text** — text that morphs character-by-character (or word-by-word) between
   values. Core `MorphController` plus a React adapter (`TextMorph`, `useTextMorph`).
-- **Numbers** — a digit reel (`NumberFlow`) that spins each digit to a new value,
+- **Numbers** — a digit reel (`Flow`) that spins each digit to a new value,
   with full `Intl.NumberFormat` support (currency, percent, units, grouping…).
 - **Icons** — a three-line icon component where any icon smoothly morphs into any
   other. React adapter (`IconMorph`, `useIconMorph`) plus a framework-agnostic
@@ -145,16 +145,16 @@ controller.update("world");
 `DEFAULT_TEXT_MORPH_OPTIONS` and `DEFAULT_AS` are also exported if you need the
 defaults at runtime.
 
-## Number flow
+## Flow
 
-`NumberFlow` animates a number to a new value, spinning each digit like a reel.
+`Flow` animates a number to a new value, spinning each digit like a reel.
 Commas, currency, units, and decimals are all handled through `Intl.NumberFormat`.
 It's exported from the React adapter:
 
 ```jsx
-import { NumberFlow } from "metamorphosis/react";
+import { Flow } from "metamorphosis/react";
 
-<NumberFlow value={count} />;
+<Flow value={count} />;
 ```
 
 Whenever `value` changes, the digits roll to the new number, the spin direction
@@ -167,25 +167,25 @@ how the number renders — currency, percent, unit, grouping, fraction digits, a
 so on. `prefix` / `suffix` add static text around it:
 
 ```jsx
-<NumberFlow value={price} format={{ style: "currency", currency: "USD" }} />
-<NumberFlow value={ratio} format={{ style: "percent", maximumFractionDigits: 1 }} />
-<NumberFlow value={size} locales="en-US" suffix=" MB" />
+<Flow value={price} format={{ style: "currency", currency: "USD" }} />
+<Flow value={ratio} format={{ style: "percent", maximumFractionDigits: 1 }} />
+<Flow value={size} locales="en-US" suffix=" MB" />
 ```
 
 `notation: "compact"` is supported; `"scientific"` and `"engineering"` are not.
 
 ### Grouping several flows
 
-Wrap multiple `NumberFlow`s in `NumberFlowGroup` to keep their animations in
+Wrap multiple `Flow`s in `FlowGroup` to keep their animations in
 lockstep when they update together:
 
 ```jsx
-import { NumberFlow, NumberFlowGroup } from "metamorphosis/react";
+import { Flow, FlowGroup } from "metamorphosis/react";
 
-<NumberFlowGroup>
-  <NumberFlow value={hours} suffix="h" />
-  <NumberFlow value={minutes} suffix="m" />
-</NumberFlowGroup>;
+<FlowGroup>
+  <Flow value={hours} suffix="h" />
+  <Flow value={minutes} suffix="m" />
+</FlowGroup>;
 ```
 
 ### Continuous transitions
@@ -194,9 +194,9 @@ The `continuous` plugin makes a digit appear to pass _through_ the numbers in
 between rather than cross-fading straight to the target:
 
 ```jsx
-import { NumberFlow, continuous } from "metamorphosis/react";
+import { Flow, continuous } from "metamorphosis/react";
 
-<NumberFlow value={value} plugins={[continuous]} />;
+<Flow value={value} plugins={[continuous]} />;
 ```
 
 ### Number props
@@ -220,11 +220,11 @@ import { NumberFlow, continuous } from "metamorphosis/react";
 | `willChange`              | `boolean`                           | `false`                                | Hint the browser to promote the animated layers.                                      |
 
 Also fires `onAnimationsStart` / `onAnimationsFinish` events and forwards standard
-HTML attributes (`className`, `style`, …). Exports: `NumberFlow` (default and
-named), `NumberFlowGroup`, `NumberFlowElement` (the underlying custom-element
-class), `continuous`, and the types `NumberFlowProps`, `Value`, `Format`, `Trend`.
+HTML attributes (`className`, `style`, …). Exports: `Flow` (default and
+named), `FlowGroup`, `FlowElement` (the underlying custom-element
+class), `continuous`, and the types `FlowProps`, `Value`, `Format`, `Trend`.
 
-> NumberFlow is a port of [`number-flow`](https://github.com/barvian/number-flow),
+> Flow is a port of [`number-flow`](https://github.com/barvian/number-flow),
 > vendored so the package stays dependency-free. It requires modern CSS
 > (`mod()`, `linear()` easing, `@property`); where unsupported it renders the
 > formatted value without animating.
@@ -328,7 +328,7 @@ pnpm dev        # watch mode
 ```
 
 The `demo/` directory is a Vite app showcasing all three morphers: cycling text,
-the cascade roll (a calendar stepper and a live clock), a draggable number-flow
+the cascade roll (a calendar stepper and a live clock), a draggable flow
 gauge, the three-line icon morph, and copy-to-clipboard install/usage snippets
 that morph as you switch tabs.
 

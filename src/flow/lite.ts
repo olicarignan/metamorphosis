@@ -49,16 +49,16 @@ export interface Props {
 
 // Workaround for Object.assign in constructor and TS:
 // https://github.com/microsoft/TypeScript/issues/26792#issuecomment-617541464
-export default interface NumberFlowLite extends Props {}
+export default interface FlowLite extends Props {}
 
 // Workaround for no outside-readable/inside-writable members in TS:
 // https://github.com/microsoft/TypeScript/issues/37487
-type Mutable = MakeMutable<NumberFlowLite>
+type Mutable = MakeMutable<FlowLite>
 
 /**
  * @internal Used for framework wrappers
  */
-export default class NumberFlowLite extends ServerSafeHTMLElement implements Props {
+export default class FlowLite extends ServerSafeHTMLElement implements Props {
 	/**
 	 * Use `private _private` properties instead of `#private` to avoid # polyfill and
 	 * reduce bundle size. Also, use `readonly` properties instead of getters to save on bundle
@@ -83,7 +83,7 @@ export default class NumberFlowLite extends ServerSafeHTMLElement implements Pro
 
 	constructor() {
 		super()
-		const { animated, ...props } = (this.constructor as typeof NumberFlowLite).defaultProps
+		const { animated, ...props } = (this.constructor as typeof FlowLite).defaultProps
 		this._animated = this.computedAnimated = animated
 		Object.assign(this, props)
 	}
@@ -246,7 +246,7 @@ class Num {
 	private _fraction: NumberSection
 
 	constructor(
-		readonly flow: NumberFlowLite,
+		readonly flow: FlowLite,
 		integer: KeyedNumberPart[],
 		fraction: KeyedNumberPart[],
 		{ className, ...props }: HTMLProps<'span'> = {}
@@ -332,7 +332,7 @@ abstract class Section {
 	protected children = new Map<NumberPartKey, Char>()
 
 	constructor(
-		readonly flow: NumberFlowLite,
+		readonly flow: FlowLite,
 		parts: KeyedNumberPart[],
 		{ justify, className, ...props }: SectionProps,
 		children?: (chars: Node[]) => Node[]
@@ -526,7 +526,7 @@ class AnimatePresence {
 	private _onRemove?: OnRemove
 
 	constructor(
-		readonly flow: NumberFlowLite,
+		readonly flow: FlowLite,
 		readonly el: HTMLElement,
 		{ onRemove, animateIn = false }: AnimatePresenceProps = {}
 	) {
@@ -569,7 +569,7 @@ class AnimatePresence {
 			return
 		}
 
-		this.el.style.setProperty('--_number-flow-d-opacity', val ? '0' : '-.999')
+		this.el.style.setProperty('--_flow-d-opacity', val ? '0' : '-.999')
 		this.el.animate(
 			{
 				[opacityDeltaVar]: val ? [-0.9999, 0] : [0.999, 0]

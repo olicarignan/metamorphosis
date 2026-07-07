@@ -1,5 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { TextMorph, IconMorph, NumberFlow } from "../../src/react";
+import {
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import { TextMorph, IconMorph, Flow } from "../../src/react";
 import { IconLink } from "./IconLink";
 import { Slider } from "./Slider";
 import { GlassGauge } from "./GlassGauge";
@@ -35,11 +41,25 @@ const INSTALL = [
 // Usage snippets — the pills in the usage section switch between them.
 const USAGE = [
   {
-    id: "text",
-    label: "Text",
+    id: "morph",
+    label: "Morph",
     code: `import { TextMorph } from "metamorphosis/react";
 
 <TextMorph>{value}</TextMorph>;`,
+  },
+  {
+    id: "cascade",
+    label: "Cascade",
+    code: `import { TextMorph } from "metamorphosis/react";
+
+<TextMorph cascade>{value}</TextMorph>;`,
+  },
+  {
+    id: "flow",
+    label: "Flow",
+    code: `import { Flow } from "metamorphosis/react";
+
+<Flow value={count} />;`,
   },
   {
     id: "icon",
@@ -47,13 +67,6 @@ const USAGE = [
     code: `import { IconMorph } from "metamorphosis/react";
 
 <IconMorph name={open ? "close" : "menu"} />;`,
-  },
-  {
-    id: "flow",
-    label: "Flow",
-    code: `import { NumberFlow } from "metamorphosis/react";
-
-<NumberFlow value={count} />;`,
   },
 ];
 
@@ -88,7 +101,7 @@ export default function App() {
         <div className="demos">
           <section className="demo">
             <div className="demo__container wide">
-              <span className="demo__label">Text Morph</span>
+              <span className="demo__label">Morph</span>
               <TextMorph className="demo__text">{WORDS[wordIndex]}</TextMorph>
             </div>
           </section>
@@ -105,7 +118,7 @@ export default function App() {
             </div>
           </section>
 
-          {/* Flow — number-flow's digit reel; drag the slider to change it */}
+          {/* Flow — the digit reel; drag the slider to change it */}
           <FlowGauge />
 
           {/* Icon morphing — every icon is three lines; tap to morph */}
@@ -169,6 +182,96 @@ function RevealTitle({ children }) {
 }
 
 /**
+ * A row of pill tabs with two moving glass pieces behind the labels: the solid
+ * glass pill slides/resizes to the active tab, and a translucent ghost pill
+ * follows the cursor across tabs on hover (fading out when the row is left).
+ * Positions are measured from each button's box so the pills track any label
+ * width, and re-measure on resize.
+ */
+function Tabs({ items, active, onChange, ariaLabel, getLabel }) {
+  const listRef = useRef(null);
+  const btnRefs = useRef([]);
+  const [pill, setPill] = useState({ left: 0, width: 0 });
+  const [ghost, setGhost] = useState({ left: 0, width: 0, visible: false });
+
+  // Subpixel-exact box of tab i, relative to the tab row (so the glass pill
+  // lands precisely on the button rather than an integer-rounded approximation).
+  const rectFor = (i) => {
+    const btn = btnRefs.current[i];
+    const list = listRef.current;
+    if (!btn || !list) return null;
+    const b = btn.getBoundingClientRect();
+    const l = list.getBoundingClientRect();
+    return { left: b.left - l.left, width: b.width };
+  };
+
+  // Snap the glass pill onto the active tab. useLayoutEffect so the first paint
+  // already has the pill in place (no grow-from-zero on mount); later changes
+  // animate via the CSS transition.
+  useLayoutEffect(() => {
+    const measure = () => {
+      const r = rectFor(active);
+      if (r) setPill(r);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [active, items]);
+
+  const moveGhost = (i) => {
+    // The active tab already wears the glass pill; don't stack the ghost on it.
+    if (i === active) {
+      setGhost((g) => ({ ...g, visible: false }));
+      return;
+    }
+    const r = rectFor(i);
+    if (r) setGhost({ ...r, visible: true });
+  };
+
+  // On select, drop the ghost first so it isn't left stacked under the glass
+  // pill as it slides onto the newly active tab.
+  const handleSelect = (i) => {
+    setGhost((g) => ({ ...g, visible: false }));
+    onChange(i);
+  };
+
+  return (
+    <div
+      className="install__tabs"
+      role="tablist"
+      aria-label={ariaLabel}
+      ref={listRef}
+      onMouseLeave={() => setGhost((g) => ({ ...g, visible: false }))}
+    >
+      <span
+        className="install__tab-pill"
+        aria-hidden="true"
+        style={{ transform: `translateX(${pill.left}px)`, width: pill.width }}
+      />
+      <span
+        className={`install__tab-ghost${ghost.visible ? " is-visible" : ""}`}
+        aria-hidden="true"
+        style={{ transform: `translateX(${ghost.left}px)`, width: ghost.width }}
+      />
+      {items.map((item, i) => (
+        <button
+          key={item.id}
+          ref={(el) => (btnRefs.current[i] = el)}
+          type="button"
+          role="tab"
+          aria-selected={i === active}
+          className={i === active ? "is-active" : undefined}
+          onClick={() => handleSelect(i)}
+          onMouseEnter={() => moveGhost(i)}
+        >
+          <span className="install__tab-label">{getLabel(item)}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/**
  * Install snippet with package-manager tabs. The command is wrapped in a
  * TextMorph so switching tabs morphs one command into the next, and a copy
  * button morphs from a copy icon to a checkmark once the command is copied.
@@ -178,24 +281,13 @@ function InstallTabs() {
 
   return (
     <div className="install">
-      <div
-        className="install__tabs"
-        role="tablist"
-        aria-label="Package manager"
-      >
-        {INSTALL.map((m, i) => (
-          <button
-            key={m.id}
-            type="button"
-            role="tab"
-            aria-selected={i === active}
-            className={i === active ? "is-active" : undefined}
-            onClick={() => setActive(i)}
-          >
-            <span className="install__tab-label">{m.id}</span>
-          </button>
-        ))}
-      </div>
+      <Tabs
+        items={INSTALL}
+        active={active}
+        onChange={setActive}
+        ariaLabel="Package manager"
+        getLabel={(m) => m.id}
+      />
 
       <div className="install__command">
         <div className="install__scroll">
@@ -229,20 +321,13 @@ function UsageTabs() {
 
   return (
     <div className="install">
-      <div className="install__tabs" role="tablist" aria-label="Usage example">
-        {USAGE.map((u, i) => (
-          <button
-            key={u.id}
-            type="button"
-            role="tab"
-            aria-selected={i === active}
-            className={i === active ? "is-active" : undefined}
-            onClick={() => setActive(i)}
-          >
-            <span className="install__tab-label">{u.label}</span>
-          </button>
-        ))}
-      </div>
+      <Tabs
+        items={USAGE}
+        active={active}
+        onChange={setActive}
+        ariaLabel="Usage example"
+        getLabel={(u) => u.label}
+      />
 
       <div className="usage">
         <pre>
@@ -441,10 +526,10 @@ function IconMorphDemo() {
 }
 
 /**
- * Flow — number-flow's digit reel. Drag the slider to set the value; each digit
+ * Flow — the digit reel. Drag the slider to set the value; each digit
  * spins in place to its new value, the direction following the change, and a
  * fast drag retargets smoothly without piling up. Powered by the vendored
- * number-flow engine (separate from cascade).
+ * flow engine (separate from cascade).
  */
 function FlowGauge() {
   const [value, setValue] = useState(420);
@@ -453,7 +538,7 @@ function FlowGauge() {
     <section className="demo demo--flow">
       <div className="demo__container wide">
         <div className="flow-gauge">
-          <NumberFlow
+          <Flow
             className="demo__text demo__flow"
             value={value}
             locales="en-US"
