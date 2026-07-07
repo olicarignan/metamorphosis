@@ -5,7 +5,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { TextMorph, IconMorph, Flow } from "../../src/react";
+import { TextMorph, IconMorph, Flow, GlyphWord } from "../../src/react";
 import { IconLink } from "./IconLink";
 import { Slider } from "./Slider";
 import { GlassGauge } from "./GlassGauge";
@@ -123,6 +123,9 @@ export default function App() {
 
           {/* Icon morphing — every icon is three lines; tap to morph */}
           <IconMorphDemo />
+
+          {/* Glyph morphing — the seconds' ones digit morphs via its font outline */}
+          <GlyphMorphDemo now={now} />
 
           {/* Install / usage — sits inside the wireframe grid as a final row */}
           <section className="page__install">
@@ -520,6 +523,38 @@ function IconMorphDemo() {
             <IconMorph name={name} size={26} strokeWidth={2} />
           </button>
         </div>
+      </div>
+    </section>
+  );
+}
+
+// Suisse Intl Regular — the same WOFF2 the demo text renders in, so the morphing
+// glyph matches its neighbors' weight, size, and baseline. fontkit reads WOFF2
+// directly (bundled brotli); opentype.js could not.
+const GLYPH_FONT = "/fonts/SuisseIntl/Suisse%20Intl%20Regular.woff2";
+
+/**
+ * Glyph morph showcase, driven by the same ticking clock as the cascade demo:
+ * the time renders as plain text and only the seconds' ones digit morphs — its
+ * font outline reshaping into the next digit every second — while the rest of
+ * the time stays put. A single number morphing in place inside a word.
+ */
+function GlyphMorphDemo({ now }) {
+  const time = clockFormat(now); // "HH:MM:SS"
+  const last = time.length - 1; // index of the seconds' ones digit
+
+  return (
+    <section className="demo demo--glyph">
+      <div className="demo__container wide">
+        <span className="demo__label">Glyph Morph</span>
+        <GlyphWord
+          className="demo__text"
+          word={time}
+          morphAt={last}
+          char={time[last]}
+          font={GLYPH_FONT}
+          ease={{ stiffness: 180, damping: 22 }}
+        />
       </div>
     </section>
   );

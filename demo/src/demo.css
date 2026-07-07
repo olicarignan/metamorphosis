@@ -472,6 +472,17 @@ a {
   top: calc(50% + 3.4rem);
 }
 
+/* GlyphMorph paints its outline with `fill: currentColor`, but `.demo__text`
+   sets `color: transparent` for the gradient-clip effect (which clips to text
+   glyphs, not to a replaced <svg>) — so the morphing digit would be invisible.
+   Paint this clock with a solid color so the morphing digit and the plain-text
+   digits around it share one visible fill. */
+.demo--glyph .demo__text {
+  background: none;
+  color: var(--text-soft);
+  -webkit-text-fill-color: var(--text-soft);
+}
+
 /* Stepper demo: the display is two rows (label + detail), so drop the caption
    clear of the detail line instead of overlapping it. */
 .demo--stepper .demo__label {
