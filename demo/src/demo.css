@@ -771,25 +771,50 @@ a {
   overflow: visible;
 }
 
-/* Toggle transitions mirror IconMorph's animation: one synchronized 400ms
-   ease-out tween (cubic-bezier(0.22, 1, 0.36, 1)) with no bounce, so the badge
-   settles like the icon morphs in the other demos. */
-.status-badge__ring {
+/* The spinner and the check badge are stacked in the same fixed-size svg and
+   crossfade with a slight shrink on toggle. Only the inner glyphs scale
+   (transform-box: view-box, around the 24×24 centre), never the svg box, so
+   there is no layout shift. Timing echoes IconMorph's ease-out (400ms). */
+.status-badge__spinner,
+.status-badge__badge {
+  transform-box: view-box;
+  transform-origin: center;
+  transition:
+    opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Spinner shown while pending; shrinks + fades out on confirm. */
+.status-badge__spinner {
+  opacity: 1;
+  transform: scale(1);
+}
+.status-badge.is-confirmed .status-badge__spinner {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+/* Badge shrunk + hidden while pending; grows + fades in on confirm. */
+.status-badge__badge {
+  opacity: 0;
+  transform: scale(0.8);
+}
+.status-badge.is-confirmed .status-badge__badge {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* The 3/4 arc spins continuously; rotate lives on the inner circle so it never
+   clashes with the crossfade scale on the wrapping group. */
+.status-badge__arc {
   fill: none;
   stroke: currentColor;
   stroke-width: 2.2;
   stroke-linecap: round;
   stroke-dasharray: 56.55; /* 2π·9 */
-  stroke-dashoffset: 0; /* full circle when confirmed */
-  transform-box: fill-box;
-  transform-origin: center;
-  transition: stroke-dashoffset 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-/* Pending: open the ring to a 3/4 arc and spin it (a full circle is rotationally
-   symmetric, so stopping the spin on confirm is invisible). */
-.status-badge:not(.is-confirmed) .status-badge__ring {
   stroke-dashoffset: 14.14; /* hide 1/4 → 3/4 arc */
+  transform-box: view-box;
+  transform-origin: center;
   animation: badge-spin 0.8s linear infinite;
 }
 
@@ -799,23 +824,19 @@ a {
   }
 }
 
-/* Solid disc with a checkmark knocked out (SVG mask). Grows from center and
-   fades in on confirm with the same ease-out tween as the ring — mimicking how
-   IconMorph's collapsed shapes expand from the center, without any overshoot. */
 .status-badge__disc {
   fill: currentColor;
-  transform-box: fill-box;
-  transform-origin: center;
-  transform: scale(0.6);
-  opacity: 0;
-  transition:
-    opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.status-badge.is-confirmed .status-badge__disc {
-  opacity: 1;
-  transform: scale(1);
+/* The checkmark cutout draws its curve on (stroke-dashoffset) as the badge
+   fades in. */
+.status-badge__check {
+  stroke-dasharray: 14;
+  stroke-dashoffset: 14;
+  transition: stroke-dashoffset 0.35s cubic-bezier(0.22, 1, 0.36, 1) 0.08s;
+}
+.status-badge.is-confirmed .status-badge__check {
+  stroke-dashoffset: 0;
 }
 
 .status__label {
@@ -827,8 +848,13 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .status-badge:not(.is-confirmed) .status-badge__ring {
+  .status-badge__arc {
     animation: none;
+  }
+  .status-badge__spinner,
+  .status-badge__badge,
+  .status-badge__check {
+    transition: none;
   }
 }
 

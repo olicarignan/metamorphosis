@@ -295,9 +295,11 @@ function StatusDemo() {
 }
 
 /**
- * A success badge that doubles as a loading spinner: one ring circle whose stroke
- * is a spinning 3/4 arc while pending, then completes into a solid circular badge
- * — with a checkmark knocked out of it (SVG mask) — once confirmed.
+ * A success badge that doubles as a loading spinner. Two stacked states crossfade
+ * with a slight shrink on toggle: a spinning 3/4 arc while pending, and a solid
+ * circular badge with a checkmark cut out (SVG mask) whose curve draws on once
+ * confirmed. Only the inner glyphs scale — the svg box stays fixed, so there is
+ * no layout shift.
  */
 function StatusBadge({ confirmed }) {
   return (
@@ -308,10 +310,11 @@ function StatusBadge({ confirmed }) {
     >
       <defs>
         {/* White keeps the disc; the black check stroke knocks a checkmark-shaped
-            hole out of it, revealing the pill behind. */}
+            hole out of it. Drawing the stroke on reveals the cutout as a curve. */}
         <mask id="status-check-cutout">
           <rect width="24" height="24" fill="white" />
           <path
+            className="status-badge__check"
             d="M7.5 12.5l3 3 5.5-6"
             fill="none"
             stroke="black"
@@ -321,14 +324,22 @@ function StatusBadge({ confirmed }) {
           />
         </mask>
       </defs>
-      <circle className="status-badge__ring" cx="12" cy="12" r="9" />
-      <circle
-        className="status-badge__disc"
-        cx="12"
-        cy="12"
-        r="9"
-        mask="url(#status-check-cutout)"
-      />
+
+      {/* Spinner state — a spinning 3/4 arc, crossfading out on confirm. */}
+      <g className="status-badge__spinner">
+        <circle className="status-badge__arc" cx="12" cy="12" r="9" />
+      </g>
+
+      {/* Badge state — a solid disc with the checkmark cut out, crossfading in. */}
+      <g className="status-badge__badge">
+        <circle
+          className="status-badge__disc"
+          cx="12"
+          cy="12"
+          r="9"
+          mask="url(#status-check-cutout)"
+        />
+      </g>
     </svg>
   );
 }
