@@ -33,18 +33,18 @@ const INSTALL = [
 // Usage snippets — the pills in the usage section switch between them.
 const USAGE = [
   {
-    id: "morph",
-    label: "Morph",
+    id: "text",
+    label: "Text",
     code: `import { TextMorph } from "metamorphosis/react";
 
 <TextMorph>{value}</TextMorph>;`,
   },
   {
-    id: "cascade",
-    label: "Cascade",
-    code: `import { TextMorph } from "metamorphosis/react";
+    id: "glyph",
+    label: "Glyph",
+    code: `import { GlyphMorph } from "metamorphosis/react";
 
-<TextMorph cascade>{value}</TextMorph>;`,
+<GlyphMorph char={digit} font="/fonts/Inter.woff2" />;`,
   },
   {
     id: "icon",
