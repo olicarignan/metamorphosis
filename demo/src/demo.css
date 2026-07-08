@@ -730,8 +730,8 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 0.9rem;
-  padding: 1.3rem 2.2rem;
-  border-radius: 1.2rem;
+  padding: 1.2rem 2.2rem;
+  border-radius: 999px;
   background: var(--glass-fill);
   overflow: hidden;
   box-shadow: var(--glass-shadow), var(--glass-bevel);
@@ -745,7 +745,7 @@ a {
   right: 0.6rem;
   top: 40%;
   bottom: -3px;
-  border-radius: 1rem;
+  border-radius: 999px;
   background: var(--glass-highlight);
   filter: blur(2.5px);
   pointer-events: none;
@@ -763,15 +763,70 @@ a {
   filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.18));
 }
 
-/* The spinner arc rotates while processing. */
-.status__icon.is-spinning {
-  animation: status-spin 0.8s linear infinite;
+/* Spinner → success badge. One ring circle: a spinning 3/4 arc while pending,
+   completing into a full circular badge as the check draws in on confirm. */
+.status-badge {
+  width: 2.2rem;
+  height: 2.2rem;
+  overflow: visible;
 }
 
-@keyframes status-spin {
+.status-badge__ring {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-dasharray: 56.55; /* 2π·9 */
+  stroke-dashoffset: 0; /* full circle when confirmed */
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: stroke-dashoffset 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Pending: open the ring to a 3/4 arc and spin it (a full circle is rotationally
+   symmetric, so stopping the spin on confirm is invisible). */
+.status-badge:not(.is-confirmed) .status-badge__ring {
+  stroke-dashoffset: 14.14; /* hide 1/4 → 3/4 arc */
+  animation: badge-spin 0.8s linear infinite;
+}
+
+@keyframes badge-spin {
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Faint badge fill that pops in behind the check on confirm. */
+.status-badge__fill {
+  fill: rgba(255, 255, 255, 0.16);
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0.6);
+  opacity: 0;
+  transition:
+    opacity 0.35s ease,
+    transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.status-badge.is-confirmed .status-badge__fill {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Checkmark draws on (stroke-dashoffset) just after the ring completes. */
+.status-badge__check {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 14;
+  stroke-dashoffset: 14;
+  transition: stroke-dashoffset 0.3s ease 0.15s;
+}
+
+.status-badge.is-confirmed .status-badge__check {
+  stroke-dashoffset: 0;
 }
 
 .status__label {
@@ -783,7 +838,7 @@ a {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .status__icon.is-spinning {
+  .status-badge:not(.is-confirmed) .status-badge__ring {
     animation: none;
   }
 }

@@ -65,11 +65,12 @@ const USAGE = [
   },
 ];
 
-// An auto-cycling status pill morphs between these two states — the label via
-// TextMorph and the icon (spinner ↔ check) via IconMorph.
+// An auto-cycling status pill morphs between these two states — the label morphs
+// (TextMorph) while a bespoke SVG badge completes its ring from a 3/4-circle
+// spinner into a checkmark badge.
 const STATUS_STATES = [
-  { label: "Processing…", icon: "spinner", spinning: true },
-  { label: "Order confirmed", icon: "check", spinning: false },
+  { label: "Processing Transaction", confirmed: false },
+  { label: "Transaction Approved", confirmed: true },
 ];
 
 // Pricing plans — the same per-month price at monthly vs. annual billing. Kept
@@ -103,16 +104,6 @@ registerIcon("signal-off", {
     [6, 17, 6, 15],
     [12, 17, 12, 15],
     [18, 17, 18, 15],
-  ],
-});
-
-// A 3/4-circle arc (open at the top-left) that reads as a loading spinner when
-// spun via CSS, and morphs cleanly into the built-in two-line check.
-registerIcon("spinner", {
-  lines: [
-    [12, 5, 19, 12],
-    [19, 12, 12, 19],
-    [12, 19, 5, 12],
   ],
 });
 
@@ -269,9 +260,9 @@ function RevealTitle({ children }) {
 }
 
 /**
- * Status pill — an order status that auto-cycles between "Processing…" and
- * "Order confirmed". The label morphs (TextMorph) while the leading icon morphs
- * spinner ↔ check (IconMorph); the spinner spins via CSS while processing.
+ * Status pill — a transaction status that auto-cycles between pending and
+ * approved. The label morphs (TextMorph) while a StatusBadge completes its ring
+ * from a spinning 3/4-circle spinner into a checkmark badge.
  */
 function StatusDemo() {
   const [i, setI] = useState(0);
@@ -288,10 +279,8 @@ function StatusDemo() {
       <div className="demo__container wide">
         <span className="demo__label">State Morph</span>
         <div className="status">
-          <span
-            className={`status__icon${state.spinning ? " is-spinning" : ""}`}
-          >
-            <IconMorph name={state.icon} size={20} strokeWidth={2.2} />
+          <span className="status__icon">
+            <StatusBadge confirmed={state.confirmed} />
           </span>
           <TextMorph className="status__label" granularity="grapheme">
             {state.label}
@@ -299,6 +288,25 @@ function StatusDemo() {
         </div>
       </div>
     </section>
+  );
+}
+
+/**
+ * A success badge that doubles as a loading spinner: one ring circle whose stroke
+ * is a spinning 3/4 arc while pending, then completes into a full circular badge
+ * as a checkmark draws inside once confirmed.
+ */
+function StatusBadge({ confirmed }) {
+  return (
+    <svg
+      className={`status-badge${confirmed ? " is-confirmed" : ""}`}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <circle className="status-badge__fill" cx="12" cy="12" r="9" />
+      <circle className="status-badge__ring" cx="12" cy="12" r="9" />
+      <path className="status-badge__check" d="M7.5 12.5l3 3 5.5-6" />
+    </svg>
   );
 }
 
