@@ -268,7 +268,7 @@ function StatusDemo() {
   const [i, setI] = useState(0);
 
   useEffect(() => {
-    const id = setInterval(() => setI((n) => (n + 1) % STATUS_STATES.length), 1900);
+    const id = setInterval(() => setI((n) => (n + 1) % STATUS_STATES.length), 2600);
     return () => clearInterval(id);
   }, []);
 
@@ -295,8 +295,8 @@ function StatusDemo() {
 
 /**
  * A success badge that doubles as a loading spinner: one ring circle whose stroke
- * is a spinning 3/4 arc while pending, then completes into a full circular badge
- * as a checkmark draws inside once confirmed.
+ * is a spinning 3/4 arc while pending, then completes into a solid circular badge
+ * — with a checkmark knocked out of it (SVG mask) — once confirmed.
  */
 function StatusBadge({ confirmed }) {
   return (
@@ -305,9 +305,29 @@ function StatusBadge({ confirmed }) {
       viewBox="0 0 24 24"
       aria-hidden="true"
     >
-      <circle className="status-badge__fill" cx="12" cy="12" r="9" />
+      <defs>
+        {/* White keeps the disc; the black check stroke knocks a checkmark-shaped
+            hole out of it, revealing the pill behind. */}
+        <mask id="status-check-cutout">
+          <rect width="24" height="24" fill="white" />
+          <path
+            d="M7.5 12.5l3 3 5.5-6"
+            fill="none"
+            stroke="black"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </mask>
+      </defs>
       <circle className="status-badge__ring" cx="12" cy="12" r="9" />
-      <path className="status-badge__check" d="M7.5 12.5l3 3 5.5-6" />
+      <circle
+        className="status-badge__disc"
+        cx="12"
+        cy="12"
+        r="9"
+        mask="url(#status-check-cutout)"
+      />
     </svg>
   );
 }

@@ -796,9 +796,9 @@ a {
   }
 }
 
-/* Faint badge fill that pops in behind the check on confirm. */
-.status-badge__fill {
-  fill: rgba(255, 255, 255, 0.16);
+/* Solid disc with a checkmark knocked out (SVG mask), popping in on confirm. */
+.status-badge__disc {
+  fill: currentColor;
   transform-box: fill-box;
   transform-origin: center;
   transform: scale(0.6);
@@ -808,25 +808,9 @@ a {
     transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-.status-badge.is-confirmed .status-badge__fill {
+.status-badge.is-confirmed .status-badge__disc {
   opacity: 1;
   transform: scale(1);
-}
-
-/* Checkmark draws on (stroke-dashoffset) just after the ring completes. */
-.status-badge__check {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2.4;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 14;
-  stroke-dashoffset: 14;
-  transition: stroke-dashoffset 0.3s ease 0.15s;
-}
-
-.status-badge.is-confirmed .status-badge__check {
-  stroke-dashoffset: 0;
 }
 
 .status__label {
