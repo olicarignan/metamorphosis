@@ -282,7 +282,9 @@ function StatusDemo() {
           <span className="status__icon">
             <StatusBadge confirmed={state.confirmed} />
           </span>
-          <TextMorph className="status__label" granularity="grapheme">
+          {/* Word granularity so the shared "Transaction" segment persists and
+              slides intact between states, rather than reshuffling per-letter. */}
+          <TextMorph className="status__label" granularity="word">
             {state.label}
           </TextMorph>
         </div>
