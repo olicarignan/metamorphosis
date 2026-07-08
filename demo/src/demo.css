@@ -339,7 +339,7 @@ a {
 }
 
 .page__subtitle {
-  margin-top: 1.2rem;
+  margin-top: 0;
   font-size: 1.6rem;
   letter-spacing: -0.01em;
   color: var(--text-soft);
@@ -351,6 +351,10 @@ a {
    (same logic as the stepper morph). Letters keep their final layout — only
    opacity/transform animate — so the title never shifts as it appears. The
    per-letter delay is set inline; the easing is smooth (no bounce). */
+/* Each title letter is a GlyphMorph <svg> filled from the #titleGradient paint
+   server (set in App.jsx), so it keeps the top→bottom fade; the gradient text-clip
+   here covers the plain-text fallback shown while the font loads. Hovering a
+   letter morphs its outline into a same-cased random glyph (handled in App.jsx). */
 .page__title-char {
   display: inline-block;
   white-space: pre;
@@ -408,8 +412,17 @@ a {
 .demos > section:nth-of-type(5) {
   animation-delay: 1.75s;
 }
-.credits {
+.demos > section:nth-of-type(6) {
   animation-delay: 1.9s;
+}
+.demos > section:nth-of-type(7) {
+  animation-delay: 2.05s;
+}
+.demos > section:nth-of-type(8) {
+  animation-delay: 2.2s;
+}
+.credits {
+  animation-delay: 2.35s;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -468,20 +481,15 @@ a {
   color: rgba(255, 255, 255, 0.35);
 }
 
-/* Icon morph demo only: a little extra breathing room below the button. */
-.demo--icon .demo__label {
-  top: calc(50% + 3.4rem);
-}
-
-/* GlyphMorph paints its outline with `fill: currentColor`, but `.demo__text`
-   sets `color: transparent` for the gradient-clip effect (which clips to text
-   glyphs, not to a replaced <svg>) — so the morphing digit would be invisible.
-   Paint this clock with a solid color so the morphing digit and the plain-text
-   digits around it share one visible fill. */
-.demo--glyph .demo__text {
-  background: none;
-  color: var(--text-soft);
-  -webkit-text-fill-color: var(--text-soft);
+/* Richer cards stack several elements; anchor their caption to the card's bottom
+   edge rather than just-below-center so it always clears the content. */
+.demo--status .demo__label,
+.demo--pricing .demo__label,
+.demo--score .demo__label,
+.demo--player .demo__label,
+.demo--signal .demo__label {
+  top: auto;
+  bottom: 1.6rem;
 }
 
 /* Stepper demo: the display is two rows (label + detail), so drop the caption
@@ -713,6 +721,294 @@ a {
   line-height: 1.4;
   min-height: 1.4em;
   font-variant-numeric: tabular-nums;
+}
+
+/* ── Status pill (State Morph: Icon + Text) ──────────────────────────────── */
+
+.status {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1.3rem 2.2rem;
+  border-radius: 1.2rem;
+  background: var(--glass-fill);
+  overflow: hidden;
+  box-shadow: var(--glass-shadow), var(--glass-bevel);
+}
+
+/* Frosted reflection pooling toward the bottom, matching the other surfaces. */
+.status::before {
+  content: "";
+  position: absolute;
+  left: 0.6rem;
+  right: 0.6rem;
+  top: 40%;
+  bottom: -3px;
+  border-radius: 1rem;
+  background: var(--glass-highlight);
+  filter: blur(2.5px);
+  pointer-events: none;
+}
+
+/* Icon and label sit above the reflection. */
+.status > * {
+  position: relative;
+  z-index: 1;
+}
+
+.status__icon {
+  display: inline-flex;
+  color: #fff;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.18));
+}
+
+/* The spinner arc rotates while processing. */
+.status__icon.is-spinning {
+  animation: status-spin 0.8s linear infinite;
+}
+
+@keyframes status-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.status__label {
+  font-family: var(--font-sans);
+  font-size: 1.8rem;
+  font-weight: 450;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status__icon.is-spinning {
+    animation: none;
+  }
+}
+
+/* ── Pricing card (Glyph Word) ───────────────────────────────────────────── */
+
+.pricing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.8rem;
+}
+
+.pricing__price {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-size: 5.2rem;
+  color: var(--text-strong);
+}
+
+.pricing__suffix {
+  margin-left: 0.4rem;
+  font-size: 1.8rem;
+  letter-spacing: -0.01em;
+  color: var(--text-soft);
+}
+
+/* ── Review score (Glyph Morph) ──────────────────────────────────────────── */
+
+.score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.8rem;
+}
+
+.score__value {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-size: 6.4rem;
+  color: var(--text-strong);
+}
+
+.score__meta {
+  margin-left: 0.4rem;
+  font-size: 2rem;
+  color: var(--text-soft);
+}
+
+.score__button {
+  padding: 0.8rem 1.8rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--glass-fill);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 1.4rem;
+  font-weight: 450;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  box-shadow: var(--glass-shadow), var(--glass-bevel);
+  transition: transform 0.15s ease;
+}
+
+.score__button:active {
+  transform: scale(0.95);
+}
+
+/* ── Media player (Icon Morph) ───────────────────────────────────────────── */
+
+.player {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.4rem;
+  width: min(30rem, calc(100% - 4rem));
+}
+
+.player__meta {
+  text-align: center;
+  min-height: 4.4rem;
+}
+
+/* Extra specificity so `display: block` beats the library's injected
+   `[metamorphosis-root] { display: inline-block }` rule — otherwise the title
+   and artist sit on one line instead of stacking. */
+.player__meta .player__title {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 2rem;
+  font-weight: 450;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--text-strong);
+}
+
+.player__meta .player__artist {
+  display: block;
+  font-size: 1.4rem;
+  letter-spacing: -0.01em;
+  color: var(--text-soft);
+}
+
+.player__controls {
+  display: flex;
+  align-items: center;
+  gap: 1.6rem;
+}
+
+/* Frosted glass disc transport buttons — the stepper disc, resized. */
+.player__transport {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--glass-fill);
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: var(--glass-shadow), var(--glass-bevel);
+  transition: transform 0.15s ease;
+}
+
+.player__transport--play {
+  width: 5rem;
+  height: 5rem;
+}
+
+.player__transport::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 4.4px);
+  transform: translate(-50%, -50%);
+  width: 72%;
+  height: 72%;
+  border-radius: 999px;
+  background: var(--glass-highlight);
+  filter: blur(2.5px);
+  pointer-events: none;
+}
+
+.player__transport > span {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.18));
+}
+
+.player__transport:active {
+  transform: scale(0.94);
+}
+
+/* ── Connection toggle (Custom Icon) ─────────────────────────────────────── */
+
+.signal {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem 1.9rem 1.1rem 1.6rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--glass-fill);
+  color: rgba(255, 255, 255, 0.9);
+  font-family: var(--font-sans);
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: var(--glass-shadow), var(--glass-bevel);
+  transition:
+    transform 0.15s ease,
+    background 0.4s ease,
+    color 0.4s ease;
+}
+
+.signal::before {
+  content: "";
+  position: absolute;
+  left: 0.6rem;
+  right: 0.6rem;
+  top: 40%;
+  bottom: -3px;
+  border-radius: 999px;
+  background: var(--glass-highlight);
+  filter: blur(2.5px);
+  pointer-events: none;
+}
+
+.signal > * {
+  position: relative;
+  z-index: 1;
+}
+
+.signal__label {
+  font-size: 1.7rem;
+  font-weight: 450;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+
+.signal:active {
+  transform: scale(0.97);
+}
+
+/* Offline: dim the whole control (the icon inherits currentColor, so its bars
+   dim with the label). */
+.signal:not(.is-online) {
+  background: #6a726b;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.signal:not(.is-online) .signal__label {
+  color: rgba(255, 255, 255, 0.55);
 }
 
 /* Frosted reflection — a blurred lighter sheet pooling toward the bottom of
