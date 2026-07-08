@@ -1,7 +1,7 @@
 {
   "name": "metamorphosis",
   "version": "0.0.9",
-  "description": "Dependency-free morphing animation library — morphing text and three-line icons. Framework-agnostic core + React adapters.",
+  "description": "Morphing animation library — morphing text, three-line icons, and per-character font-outline glyphs. Framework-agnostic core + React adapters (text/icon are dependency-free; glyph morphing uses fontkit).",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
@@ -15,6 +15,11 @@
       "types": "./dist/icon-morph/index.d.ts",
       "import": "./dist/icon-morph/index.mjs",
       "require": "./dist/icon-morph/index.js"
+    },
+    "./glyph-morph": {
+      "types": "./dist/glyph-morph/index.d.ts",
+      "import": "./dist/glyph-morph/index.mjs",
+      "require": "./dist/glyph-morph/index.js"
     },
     "./react": {
       "types": "./dist/react/index.d.ts",
@@ -34,6 +39,10 @@
     "text-morph",
     "icon-morph",
     "icon-morphing",
+    "glyph-morph",
+    "glyph-morphing",
+    "letter",
+    "font",
     "text",
     "icon",
     "svg",
@@ -58,6 +67,7 @@
     }
   },
   "devDependencies": {
+    "@types/fontkit": "^2.0.9",
     "@types/react": "^19.0.0",
     "tsup": "^8.5.0",
     "typescript": "^5.9.3"
@@ -65,5 +75,8 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/olicarignan/metamorphosis.git"
+  },
+  "dependencies": {
+    "fontkit": "^2.0.4"
   }
 }

@@ -1,12 +1,17 @@
 # metamorphosis
 
-A dependency-free **morphing animation library**. It ships two morphers:
+A **morphing animation library**. It ships three morphers:
 
 - **Text** — text that morphs character-by-character (or word-by-word) between
   values. Core `MorphController` plus a React adapter (`TextMorph`, `useTextMorph`).
 - **Icons** — a three-line icon component where any icon smoothly morphs into any
   other. React adapter (`IconMorph`, `useIconMorph`) plus a framework-agnostic
   `IconMorphController`.
+- **Glyphs** — a single character whose real font outline morphs into the next
+  (`GlyphMorph`, `GlyphWord`, `useGlyphMorph`, `GlyphMorphController`).
+
+Text and icons are dependency-free; glyph morphing uses `fontkit` to
+read font outlines.
 
 ## Install
 
@@ -210,7 +215,7 @@ identity key used to detect changes):
 | `strokeWidth`          | `number`                   | `2`              | Stroke width in the 24-unit icon space.                  |
 | `color`                | `string`                   | `"currentColor"` | Stroke color.                                            |
 | `duration`             | `number` (ms)              | `400`            | Morph duration. Ignored when `ease` is a spring.         |
-| `ease`                 | `string \| SpringParams`   | ease-out         | CSS easing string, or a spring config (see above).       |
+| `ease`                 | `string \| SpringParams`   | `cubic-bezier(0.22, 1, 0.36, 1)` | CSS easing string, or a spring config (see above).       |
 | `disabled`             | `boolean`                  | `false`          | Swap instantly with no animation.                        |
 | `respectReducedMotion` | `boolean`                  | `true`           | Honor `prefers-reduced-motion`.                          |
 | `onAnimationStart`     | `() => void`               | —                | Called when a morph begins (not on initial render).      |
@@ -233,6 +238,89 @@ icon.update("close"); // morphs
 There's also a `useIconMorph` hook mirroring `useTextMorph` for full control over
 the host element.
 
+## Glyph morphing
+
+`GlyphMorph` renders a single character and morphs its **font outline** into the
+next whenever `char` changes — the icon-morph technique applied to a real glyph.
+It reads the outline from a font you point it at, so the morphing character
+matches the surrounding text's family, weight, size, and baseline.
+
+```jsx
+import { GlyphMorph } from "metamorphosis/react";
+
+<GlyphMorph char={digit} font="/fonts/Inter.woff2" />;
+```
+
+Each glyph's outline is flattened, its contours resampled to a common point
+count, and then interpolated point-by-point. Glyphs with a different number of
+contours still morph cleanly: an extra hole or counter (the inside of an `8`,
+`o`, or `A`) grows out of — or collapses into — a point, the same way icon-morph
+collapses an unused line to the center.
+
+> Glyph morphing uses [`fontkit`](https://github.com/foliojs/fontkit) (a runtime
+> dependency, loaded lazily) to read outlines. It reads `.ttf`, `.otf`, and
+> `.woff`/`.woff2` (fontkit bundles the WOFF2 decompressor), and can instance a
+> variable font to match a specific weight. This is the one morpher that isn't
+> dependency-free — text and icon have no runtime dependencies.
+
+### Letters in a word
+
+`GlyphWord` renders a word as text with one or more inline morphing slots, so
+individual letters or numbers morph in place while the rest stays put:
+
+```jsx
+import { GlyphWord } from "metamorphosis/react";
+
+{/* only the third letter morphs: "co d e" → "co r e" */}
+<GlyphWord word={word} morphAt={2} font="/fonts/Inter.woff2" />;
+
+{/* every character morphs as the time ticks */}
+<GlyphWord word={time} font="/fonts/Inter.woff2" />;
+```
+
+`word` supplies the text and each morphing slot takes its glyph from that word.
+`morphAt` selects which characters morph — a single index or a list of indices;
+omit it to morph every character. All glyphs share `font`.
+
+### Glyph props
+
+| Prop                   | Type                       | Default          | Description                                              |
+| ---------------------- | -------------------------- | ---------------- | -------------------------------------------------------- |
+| `char`                 | `string`                   | —                | The character to display. Morphs when it changes.        |
+| `font`                 | `string \| ArrayBuffer`    | —                | Font URL, or preloaded bytes, to read the outline from.  |
+| `color`                | `string`                   | `"currentColor"` | Fill color of the glyph.                                 |
+| `duration`             | `number` (ms)              | `400`            | Morph duration. Ignored when `ease` is a spring.         |
+| `blur`                 | `number` (em)              | `0.02`           | Peak blur, ramped in/out during the morph; `0` disables. |
+| `ease`                 | `string \| SpringParams`   | `cubic-bezier(0.22, 1, 0.36, 1)` | CSS easing string, or a spring config.   |
+| `disabled`             | `boolean`                  | `false`          | Swap instantly with no animation.                        |
+| `respectReducedMotion` | `boolean`                  | `true`           | Honor `prefers-reduced-motion`.                          |
+| `onAnimationStart`     | `() => void`               | —                | Called when a morph begins (not on initial render).      |
+| `onAnimationComplete`  | `() => void`               | —                | Called when a morph finishes.                            |
+
+React-only props: `as` (host element, default `"span"`), `className`, `style`.
+While the font loads — and for any character the font has no glyph for
+(whitespace, unsupported) — the plain character renders as text.
+
+The glyph is an `<svg>` filled with `color` (default `currentColor`). If the
+surrounding text uses the `background-clip: text` + `color: transparent` gradient
+trick, `currentColor` is transparent and the glyph won't show — that clip applies
+to text glyphs, not to a replaced `<svg>`. Pass an explicit `color` (or set a
+solid `color` on the container) so the glyph has something to paint with.
+
+### Core (framework-agnostic)
+
+```js
+import { GlyphMorphController } from "metamorphosis/glyph-morph";
+
+const glyph = new GlyphMorphController();
+glyph.attach(element, { font: "/fonts/Inter.woff2", ease: { stiffness: 180, damping: 16 } });
+glyph.update("3");
+glyph.update("8"); // morphs
+// glyph.destroy() to tear down
+```
+
+There's also a `useGlyphMorph` hook mirroring the other morphers.
+
 ## Develop
 
 ```bash
@@ -241,9 +329,10 @@ pnpm build      # tsup → dist/ (esm + cjs + d.ts)
 pnpm dev        # watch mode
 ```
 
-The `demo/` directory is a Vite app showcasing every prop (granularity, spring
-presets, a live stiffness/damping playground, copy-to-clipboard morphs, and the
-three-line icon morph).
+The `demo/` directory is a Vite app showcasing the morphers: cycling text,
+the cascade roll (a calendar stepper and a live clock), the three-line icon
+morph, a live clock whose seconds digit morphs its font outline (glyph morph),
+and copy-to-clipboard install/usage snippets that morph as you switch tabs.
 
 ```bash
 cd demo && pnpm install && pnpm dev

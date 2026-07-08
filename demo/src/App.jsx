@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { TextMorph, IconMorph } from "../../src/react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { TextMorph, IconMorph, GlyphWord } from "../../src/react";
 import { IconLink } from "./IconLink";
 import { cascadeProps } from "./cascade";
 
@@ -13,6 +13,14 @@ const WORDS = [
 ];
 // Live clock — always the time with seconds, ticking each second.
 const clockFormat = (d) => d.toLocaleTimeString("en-GB", { hour12: false });
+
+// A gentler, slower morph for the install/usage snippets — a smooth, symmetric
+// ease-in-out (vs. the default snappy easeOutQuint) over a longer duration, so
+// characters glide in and out rather than snapping into place.
+const SMOOTH_MORPH = {
+  ease: "cubic-bezier(0.33, 1, 0.68, 1)",
+  duration: 350,
+};
 
 // Install command per package manager — the morph target for the install tabs.
 const INSTALL = [
@@ -32,6 +40,13 @@ const USAGE = [
 <TextMorph>{value}</TextMorph>;`,
   },
   {
+    id: "glyph",
+    label: "Glyph",
+    code: `import { GlyphMorph } from "metamorphosis/react";
+
+<GlyphMorph char={digit} font="/fonts/Inter.woff2" />;`,
+  },
+  {
     id: "icon",
     label: "Icon",
     code: `import { IconMorph } from "metamorphosis/react";
@@ -43,8 +58,6 @@ const USAGE = [
 export default function App() {
   const [wordIndex, setWordIndex] = useState(0);
   const [now, setNow] = useState(() => new Date());
-
-  const [text, setText] = useState("Type to morph");
 
   // Cycle the hero word on a timer.
   useEffect(() => {
@@ -73,10 +86,15 @@ export default function App() {
         <div className="demos">
           <section className="demo">
             <div className="demo__container wide">
-              <span className="demo__label">Text Morph</span>
+              <span className="demo__label">Word Morph</span>
               <TextMorph className="demo__text">{WORDS[wordIndex]}</TextMorph>
             </div>
           </section>
+
+          {/* Glyph morphing — the seconds' ones digit morphs via its font outline */}
+          <GlyphMorphDemo now={now} />
+
+          {/* Cascade — the live clock, rolling each second */}
           <section className="demo">
             <div className="demo__container wide">
               <span className="demo__label">Cascade</span>
@@ -86,30 +104,11 @@ export default function App() {
             </div>
           </section>
 
-          {/* Icon morphing — every icon is three lines; tap to morph */}
-          <IconMorphDemo />
-
-          {/* Day stepper — step through calendar days, morphing the label */}
+          {/* Cascade — step through calendar days, morphing the date label */}
           <CalendarStepper />
 
-          {/* Morphs live as you type */}
-          <section className="demo">
-            <div className="demo__container wide">
-              <TextMorph className="demo__text" granularity="grapheme">
-                {text || " "}
-              </TextMorph>
-
-              <div className="dialkit-root demo__dock" data-theme="light">
-                <input
-                  className="dialkit-text-field"
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                  placeholder="Type to morph…"
-                  aria-label="Text to morph"
-                />
-              </div>
-            </div>
-          </section>
+          {/* Icon morphing — every icon is three lines; tap to morph */}
+          <IconMorphDemo />
 
           {/* Install / usage — sits inside the wireframe grid as a final row */}
           <section className="page__install">
@@ -169,6 +168,96 @@ function RevealTitle({ children }) {
 }
 
 /**
+ * A row of pill tabs with two moving glass pieces behind the labels: the solid
+ * glass pill slides/resizes to the active tab, and a translucent ghost pill
+ * follows the cursor across tabs on hover (fading out when the row is left).
+ * Positions are measured from each button's box so the pills track any label
+ * width, and re-measure on resize.
+ */
+function Tabs({ items, active, onChange, ariaLabel, getLabel }) {
+  const listRef = useRef(null);
+  const btnRefs = useRef([]);
+  const [pill, setPill] = useState({ left: 0, width: 0 });
+  const [ghost, setGhost] = useState({ left: 0, width: 0, visible: false });
+
+  // Subpixel-exact box of tab i, relative to the tab row (so the glass pill
+  // lands precisely on the button rather than an integer-rounded approximation).
+  const rectFor = (i) => {
+    const btn = btnRefs.current[i];
+    const list = listRef.current;
+    if (!btn || !list) return null;
+    const b = btn.getBoundingClientRect();
+    const l = list.getBoundingClientRect();
+    return { left: b.left - l.left, width: b.width };
+  };
+
+  // Snap the glass pill onto the active tab. useLayoutEffect so the first paint
+  // already has the pill in place (no grow-from-zero on mount); later changes
+  // animate via the CSS transition.
+  useLayoutEffect(() => {
+    const measure = () => {
+      const r = rectFor(active);
+      if (r) setPill(r);
+    };
+    measure();
+    window.addEventListener("resize", measure);
+    return () => window.removeEventListener("resize", measure);
+  }, [active, items]);
+
+  const moveGhost = (i) => {
+    // The active tab already wears the glass pill; don't stack the ghost on it.
+    if (i === active) {
+      setGhost((g) => ({ ...g, visible: false }));
+      return;
+    }
+    const r = rectFor(i);
+    if (r) setGhost({ ...r, visible: true });
+  };
+
+  // On select, drop the ghost first so it isn't left stacked under the glass
+  // pill as it slides onto the newly active tab.
+  const handleSelect = (i) => {
+    setGhost((g) => ({ ...g, visible: false }));
+    onChange(i);
+  };
+
+  return (
+    <div
+      className="install__tabs"
+      role="tablist"
+      aria-label={ariaLabel}
+      ref={listRef}
+      onMouseLeave={() => setGhost((g) => ({ ...g, visible: false }))}
+    >
+      <span
+        className="install__tab-pill"
+        aria-hidden="true"
+        style={{ transform: `translateX(${pill.left}px)`, width: pill.width }}
+      />
+      <span
+        className={`install__tab-ghost${ghost.visible ? " is-visible" : ""}`}
+        aria-hidden="true"
+        style={{ transform: `translateX(${ghost.left}px)`, width: ghost.width }}
+      />
+      {items.map((item, i) => (
+        <button
+          key={item.id}
+          ref={(el) => (btnRefs.current[i] = el)}
+          type="button"
+          role="tab"
+          aria-selected={i === active}
+          className={i === active ? "is-active" : undefined}
+          onClick={() => handleSelect(i)}
+          onMouseEnter={() => moveGhost(i)}
+        >
+          <span className="install__tab-label">{getLabel(item)}</span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/**
  * Install snippet with package-manager tabs. The command is wrapped in a
  * TextMorph so switching tabs morphs one command into the next, and a copy
  * button morphs from a copy icon to a checkmark once the command is copied.
@@ -178,28 +267,21 @@ function InstallTabs() {
 
   return (
     <div className="install">
-      <div
-        className="install__tabs"
-        role="tablist"
-        aria-label="Package manager"
-      >
-        {INSTALL.map((m, i) => (
-          <button
-            key={m.id}
-            type="button"
-            role="tab"
-            aria-selected={i === active}
-            className={i === active ? "is-active" : undefined}
-            onClick={() => setActive(i)}
-          >
-            <span className="install__tab-label">{m.id}</span>
-          </button>
-        ))}
-      </div>
+      <Tabs
+        items={INSTALL}
+        active={active}
+        onChange={setActive}
+        ariaLabel="Package manager"
+        getLabel={(m) => m.id}
+      />
 
       <div className="install__command">
         <div className="install__scroll">
-          <TextMorph className="install__code" granularity="grapheme">
+          <TextMorph
+            className="install__code"
+            granularity="grapheme"
+            {...SMOOTH_MORPH}
+          >
             {INSTALL[active].cmd}
           </TextMorph>
         </div>
@@ -225,20 +307,13 @@ function UsageTabs() {
 
   return (
     <div className="install">
-      <div className="install__tabs" role="tablist" aria-label="Usage example">
-        {USAGE.map((u, i) => (
-          <button
-            key={u.id}
-            type="button"
-            role="tab"
-            aria-selected={i === active}
-            className={i === active ? "is-active" : undefined}
-            onClick={() => setActive(i)}
-          >
-            <span className="install__tab-label">{u.label}</span>
-          </button>
-        ))}
-      </div>
+      <Tabs
+        items={USAGE}
+        active={active}
+        onChange={setActive}
+        ariaLabel="Usage example"
+        getLabel={(u) => u.label}
+      />
 
       <div className="usage">
         <pre>
@@ -247,7 +322,9 @@ function UsageTabs() {
           <code>
             {lines.map((line, i) => (
               <span key={i} className="usage__line">
-                <TextMorph granularity="grapheme">{line || " "}</TextMorph>
+                <TextMorph granularity="grapheme" {...SMOOTH_MORPH}>
+                  {line || " "}
+                </TextMorph>
               </span>
             ))}
           </code>
@@ -434,6 +511,39 @@ function IconMorphDemo() {
   );
 }
 
+// Suisse Intl Regular — the same WOFF2 the demo text renders in, so the morphing
+// glyph matches its neighbors' weight, size, and baseline. fontkit reads WOFF2
+// directly (bundled brotli); opentype.js could not.
+const GLYPH_FONT = "/fonts/SuisseIntl/Suisse%20Intl%20Regular.woff2";
+
+/**
+ * Glyph morph showcase, driven by the same ticking clock as the cascade demo:
+ * the time renders in the page font and every digit morphs in place — its font
+ * outline reshaping into the next digit whenever it ticks — while the colons
+ * stay static. Multiple numbers morphing throughout a word.
+ *
+ * The morph's subtle blur (peak amount, when it clears, and ramp-down
+ * sharpness) is tuned via the GlyphWord `blur`/`blurEnd`/`blurCurve` props; the
+ * library defaults are used here.
+ */
+function GlyphMorphDemo({ now }) {
+  const time = clockFormat(now); // "HH:MM:SS"
+
+  return (
+    <section className="demo demo--glyph">
+      <div className="demo__container wide">
+        <span className="demo__label">Character Morph</span>
+        <GlyphWord
+          className="demo__text"
+          word={time}
+          font={GLYPH_FONT}
+          ease={{ stiffness: 180, damping: 22 }}
+        />
+      </div>
+    </section>
+  );
+}
+
 /**
  * Calendar-day stepper: an on-brand take on the glass-buttons date selector.
  * The chevrons step the day and the label morphs from one value to the next.
@@ -448,8 +558,9 @@ function CalendarStepper() {
   }, [offset]);
 
   return (
-    <section className="demo">
+    <section className="demo demo--stepper">
       <div className="demo__container wide">
+        <span className="demo__label">Cascade</span>
         <div className="stepper">
           <button
             type="button"

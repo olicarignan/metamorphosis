@@ -3,3 +3,6 @@ export type { TextMorphProps } from "./TextMorph";
 
 export { IconMorph, useIconMorph } from "./IconMorph";
 export type { IconMorphProps } from "./IconMorph";
+
+export { GlyphMorph, useGlyphMorph, GlyphWord } from "./GlyphMorph";
+export type { GlyphMorphProps, GlyphWordProps } from "./GlyphMorph";
