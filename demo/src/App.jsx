@@ -147,8 +147,9 @@ export default function App() {
             </div>
           </section>
 
-          {/* State morph — an auto-cycling status pill: the icon morphs
-              spinner↔check (IconMorph) and the label morphs (TextMorph) */}
+          {/* State morph — an auto-cycling status pill: the label morphs
+              (TextMorph) while a bespoke SVG badge completes from a spinner into
+              a checkmark badge */}
           <StatusDemo />
 
           {/* Cascade — step through calendar days, morphing the date label */}
