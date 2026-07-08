@@ -41,6 +41,9 @@ export class GlyphMorphController {
       color: options.color,
       ease: options.ease,
       duration: options.duration,
+      blur: options.blur,
+      blurEnd: options.blurEnd,
+      blurCurve: options.blurCurve,
       disabled: options.disabled,
       respectReducedMotion: options.respectReducedMotion,
     });

@@ -1,5 +1,5 @@
 // Shared "cascade" morph styling — the numericText-style roll used across the
-// demo (calendar stepper, live clock, playground readout, gauge values).
+// demo (calendar stepper, live clock, gauge values).
 //
 // The roll itself ships in the package behind the `cascade` prop. Here we just
 // pair it with the spring tuned to the glass-buttons date selector:

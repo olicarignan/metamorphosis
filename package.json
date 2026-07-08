@@ -1,7 +1,7 @@
 {
   "name": "metamorphosis",
   "version": "0.0.9",
-  "description": "Morphing animation library — morphing text, three-line icons, and per-character font-outline glyphs. Framework-agnostic core + React adapters (text/icon/flow are dependency-free; glyph morphing uses fontkit).",
+  "description": "Morphing animation library — morphing text, three-line icons, and per-character font-outline glyphs. Framework-agnostic core + React adapters (text/icon are dependency-free; glyph morphing uses fontkit).",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",

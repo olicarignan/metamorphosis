@@ -1,14 +1,6 @@
-import {
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import { TextMorph, IconMorph, Flow, GlyphWord } from "../../src/react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { TextMorph, IconMorph, GlyphWord } from "../../src/react";
 import { IconLink } from "./IconLink";
-import { Slider } from "./Slider";
-import { GlassGauge } from "./GlassGauge";
 import { cascadeProps } from "./cascade";
 
 const WORDS = [
@@ -55,13 +47,6 @@ const USAGE = [
 <TextMorph cascade>{value}</TextMorph>;`,
   },
   {
-    id: "flow",
-    label: "Flow",
-    code: `import { Flow } from "metamorphosis/react";
-
-<Flow value={count} />;`,
-  },
-  {
     id: "icon",
     label: "Icon",
     code: `import { IconMorph } from "metamorphosis/react";
@@ -101,12 +86,13 @@ export default function App() {
         <div className="demos">
           <section className="demo">
             <div className="demo__container wide">
-              <span className="demo__label">Morph</span>
+              <span className="demo__label">Word Morph</span>
               <TextMorph className="demo__text">{WORDS[wordIndex]}</TextMorph>
             </div>
           </section>
-          {/* Cascade — step through calendar days, morphing the date label */}
-          <CalendarStepper />
+
+          {/* Glyph morphing — the seconds' ones digit morphs via its font outline */}
+          <GlyphMorphDemo now={now} />
 
           {/* Cascade — the live clock, rolling each second */}
           <section className="demo">
@@ -118,14 +104,11 @@ export default function App() {
             </div>
           </section>
 
-          {/* Flow — the digit reel; drag the slider to change it */}
-          <FlowGauge />
+          {/* Cascade — step through calendar days, morphing the date label */}
+          <CalendarStepper />
 
           {/* Icon morphing — every icon is three lines; tap to morph */}
           <IconMorphDemo />
-
-          {/* Glyph morphing — the seconds' ones digit morphs via its font outline */}
-          <GlyphMorphDemo now={now} />
 
           {/* Install / usage — sits inside the wireframe grid as a final row */}
           <section className="page__install">
@@ -535,59 +518,27 @@ const GLYPH_FONT = "/fonts/SuisseIntl/Suisse%20Intl%20Regular.woff2";
 
 /**
  * Glyph morph showcase, driven by the same ticking clock as the cascade demo:
- * the time renders as plain text and only the seconds' ones digit morphs — its
- * font outline reshaping into the next digit every second — while the rest of
- * the time stays put. A single number morphing in place inside a word.
+ * the time renders in the page font and every digit morphs in place — its font
+ * outline reshaping into the next digit whenever it ticks — while the colons
+ * stay static. Multiple numbers morphing throughout a word.
+ *
+ * The morph's subtle blur (peak amount, when it clears, and ramp-down
+ * sharpness) is tuned via the GlyphWord `blur`/`blurEnd`/`blurCurve` props; the
+ * library defaults are used here.
  */
 function GlyphMorphDemo({ now }) {
   const time = clockFormat(now); // "HH:MM:SS"
-  const last = time.length - 1; // index of the seconds' ones digit
 
   return (
     <section className="demo demo--glyph">
       <div className="demo__container wide">
-        <span className="demo__label">Glyph Morph</span>
+        <span className="demo__label">Character Morph</span>
         <GlyphWord
           className="demo__text"
           word={time}
-          morphAt={last}
-          char={time[last]}
           font={GLYPH_FONT}
           ease={{ stiffness: 180, damping: 22 }}
         />
-      </div>
-    </section>
-  );
-}
-
-/**
- * Flow — the digit reel. Drag the slider to set the value; each digit
- * spins in place to its new value, the direction following the change, and a
- * fast drag retargets smoothly without piling up. Powered by the vendored
- * flow engine (separate from cascade).
- */
-function FlowGauge() {
-  const [value, setValue] = useState(420);
-
-  return (
-    <section className="demo demo--flow">
-      <div className="demo__container wide">
-        <div className="flow-gauge">
-          <Flow
-            className="demo__text demo__flow"
-            value={value}
-            locales="en-US"
-          />
-          <GlassGauge
-            label="Flow value"
-            value={value}
-            min={0}
-            max={1000}
-            step={1}
-            onChange={setValue}
-          />
-          <span className="demo__label">Flow</span>
-        </div>
       </div>
     </section>
   );

@@ -72,10 +72,12 @@ export function useGlyphMorph(props: Omit<GlyphMorphOptions, "element">) {
 
 export type GlyphWordProps = Pick<
   GlyphMorphProps,
-  | "char"
   | "font"
   | "color"
   | "duration"
+  | "blur"
+  | "blurEnd"
+  | "blurCurve"
   | "ease"
   | "disabled"
   | "respectReducedMotion"
@@ -84,17 +86,21 @@ export type GlyphWordProps = Pick<
 > & {
   /** The surrounding word; all glyphs share the same `font`. */
   word: string;
-  /** Index within `word` of the character that morphs (`char` drives it). */
-  morphAt: number;
+  /**
+   * Which character(s) morph, as one index or a list of indices. Each morphing
+   * slot's glyph is taken from `word` at that index. Omit to morph every
+   * character in the word.
+   */
+  morphAt?: number | number[];
   className?: string;
   style?: React.CSSProperties;
   as?: React.ElementType;
 };
 
 /**
- * A word with a single inline morphing slot: renders the text before/after
- * `morphAt` as plain characters and the character at that index as a
- * `<GlyphMorph>`, so one letter/number morphs in place while the rest stays put.
+ * A word with one or more inline morphing slots: each character at a `morphAt`
+ * index becomes a `<GlyphMorph>` (morphing in place as `word` changes) while the
+ * rest render as plain text. With `morphAt` omitted, every character morphs.
  */
 export const GlyphWord = ({
   word,
@@ -105,14 +111,21 @@ export const GlyphWord = ({
   ...glyphProps
 }: GlyphWordProps) => {
   const Component = as;
-  const before = word.slice(0, morphAt);
-  const after = word.slice(morphAt + 1);
+  const chars = [...word];
+  const morphSet =
+    morphAt == null
+      ? null // null = morph every character
+      : new Set(Array.isArray(morphAt) ? morphAt : [morphAt]);
 
   return (
     <Component className={className} style={style}>
-      {before}
-      <GlyphMorph {...glyphProps} />
-      {after}
+      {chars.map((ch, i) =>
+        morphSet == null || morphSet.has(i) ? (
+          <GlyphMorph key={i} char={ch} {...glyphProps} />
+        ) : (
+          <React.Fragment key={i}>{ch}</React.Fragment>
+        ),
+      )}
     </Component>
   );
 };

@@ -15,10 +15,16 @@ const SVG_NS = "http://www.w3.org/2000/svg";
 export const DEFAULT_GLYPH_MORPH_OPTIONS = {
   color: "currentColor",
   duration: 400,
+  blur: 0.02,
+  blurEnd: 0.5,
+  blurCurve: 2,
   ease: "cubic-bezier(0.22, 1, 0.36, 1)",
   disabled: false,
   respectReducedMotion: true,
 } as const satisfies Omit<GlyphMorphOptions, "element" | "font">;
+
+// Unique-per-instance filter ids so multiple glyphs on a page don't collide.
+let filterSeq = 0;
 
 const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
 const round = (n: number) => Math.round(n * 10000) / 10000;
@@ -38,6 +44,8 @@ export class GlyphMorph {
 
   private svg: SVGSVGElement | null = null;
   private pathEl: SVGPathElement | null = null;
+  private blurEl: SVGFEGaussianBlurElement | null = null; // ramped during morph
+  private filterId = `glyph-morph-blur-${filterSeq++}`;
   private mounted = false; // svg (vs. a text fallback) is in the host element
 
   private shownChar: string | null = null;
@@ -162,6 +170,12 @@ export class GlyphMorph {
       const state = interpolate(from, to, t);
       this.current = state;
       this.apply(state);
+      // Blur envelope over linear progress: rise, then a faster fall that hits 0
+      // by `blurEnd`; `blurCurve` sharpens the shoulders so it doesn't linger.
+      // Crisp for the whole tail of the settle rather than softening as it lands.
+      const bp = Math.min(1, raw / this.options.blurEnd!);
+      const envelope = Math.sin(Math.PI * bp) ** this.options.blurCurve!;
+      this.setBlur(this.options.blur! * envelope);
 
       if (raw < 1) {
         this.rafId = requestAnimationFrame(frame);
@@ -169,6 +183,7 @@ export class GlyphMorph {
         this.rafId = null;
         this.current = target; // settle on the clean (unpadded) target
         this.apply(target);
+        this.setBlur(0); // fully crisp once settled
         this.options.onAnimationComplete?.();
       }
     };
@@ -194,6 +209,27 @@ export class GlyphMorph {
     // outline) subtract under fill-rule: nonzero, instead of painting solid.
     const path = document.createElementNS(SVG_NS, "path");
     path.setAttribute("fill-rule", "nonzero");
+
+    // Optional Gaussian-blur filter, ramped in/out during the morph. It's built
+    // but not applied to the path here — `filter` is attached only while a morph
+    // is running so the glyph is untouched (perfectly crisp) at rest.
+    if (this.options.blur! > 0) {
+      const defs = document.createElementNS(SVG_NS, "defs");
+      const filter = document.createElementNS(SVG_NS, "filter");
+      filter.setAttribute("id", this.filterId);
+      // Roomy region so the blur isn't clipped at the glyph's edges.
+      filter.setAttribute("x", "-20%");
+      filter.setAttribute("y", "-20%");
+      filter.setAttribute("width", "140%");
+      filter.setAttribute("height", "140%");
+      const blur = document.createElementNS(SVG_NS, "feGaussianBlur");
+      blur.setAttribute("stdDeviation", "0");
+      filter.appendChild(blur);
+      defs.appendChild(filter);
+      svg.appendChild(defs);
+      this.blurEl = blur;
+    }
+
     svg.appendChild(path);
 
     this.svg = svg;
@@ -224,6 +260,20 @@ export class GlyphMorph {
     let d = "";
     for (const c of glyph.contours) d += contourToD(c.pts);
     this.pathEl!.setAttribute("d", d);
+  }
+
+  // Set the live blur (em units). The filter is attached to the path only while
+  // there's blur to show, and removed at zero so a settled glyph renders with no
+  // filter in the pipeline at all.
+  private setBlur(amount: number) {
+    if (!this.blurEl) return;
+    if (amount > 0) {
+      this.blurEl.setAttribute("stdDeviation", `${round(amount)}`);
+      this.pathEl!.setAttribute("filter", `url(#${this.filterId})`);
+    } else {
+      this.blurEl.setAttribute("stdDeviation", "0");
+      this.pathEl!.removeAttribute("filter");
+    }
   }
 }
 

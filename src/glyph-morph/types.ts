@@ -37,6 +37,25 @@ export interface GlyphMorphOptions {
   color?: string;
   /** Morph duration in ms (ignored when `ease` is a spring). Default 400. */
   duration?: number;
+  /**
+   * Peak Gaussian blur applied only while morphing, in em units. It ramps from 0
+   * up to this value and back to 0, so the glyph is perfectly crisp at rest.
+   * Small values are subtle (e.g. 0.02 ≈ a hair of blur at the shape's most-fluid
+   * moment). Set 0 to disable. Default 0.02.
+   */
+  blur?: number;
+  /**
+   * Fraction of the morph (0–1) by which the blur has fully risen and fallen
+   * back to 0, so the glyph is crisp for the remainder as it settles. Lower =
+   * the blur clears earlier. Default 0.5.
+   */
+  blurEnd?: number;
+  /**
+   * Shoulder sharpness of the blur envelope. `1` is a plain sine bell; higher
+   * values sharpen the rise/fall so the blur lingers less at its edges. Default
+   * 2.
+   */
+  blurCurve?: number;
   ease?: string | SpringParams;
   disabled?: boolean;
   respectReducedMotion?: boolean;

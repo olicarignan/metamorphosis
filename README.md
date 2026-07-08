@@ -1,18 +1,16 @@
 # metamorphosis
 
-A **morphing animation library**. It ships four morphers:
+A **morphing animation library**. It ships three morphers:
 
 - **Text** — text that morphs character-by-character (or word-by-word) between
   values. Core `MorphController` plus a React adapter (`TextMorph`, `useTextMorph`).
-- **Numbers** — a digit reel (`Flow`) that spins each digit to a new value,
-  with full `Intl.NumberFormat` support (currency, percent, units, grouping…).
 - **Icons** — a three-line icon component where any icon smoothly morphs into any
   other. React adapter (`IconMorph`, `useIconMorph`) plus a framework-agnostic
   `IconMorphController`.
 - **Glyphs** — a single character whose real font outline morphs into the next
   (`GlyphMorph`, `GlyphWord`, `useGlyphMorph`, `GlyphMorphController`).
 
-Text, numbers, and icons are dependency-free; glyph morphing uses `fontkit` to
+Text and icons are dependency-free; glyph morphing uses `fontkit` to
 read font outlines.
 
 ## Install
@@ -150,90 +148,6 @@ controller.update("world");
 `DEFAULT_TEXT_MORPH_OPTIONS` and `DEFAULT_AS` are also exported if you need the
 defaults at runtime.
 
-## Flow
-
-`Flow` animates a number to a new value, spinning each digit like a reel.
-Commas, currency, units, and decimals are all handled through `Intl.NumberFormat`.
-It's exported from the React adapter:
-
-```jsx
-import { Flow } from "metamorphosis/react";
-
-<Flow value={count} />;
-```
-
-Whenever `value` changes, the digits roll to the new number, the spin direction
-following the change. `value` may be a `number` or a numeric `string`.
-
-### Formatting
-
-Pass `format` (an `Intl.NumberFormat` options object) and/or `locales` to control
-how the number renders — currency, percent, unit, grouping, fraction digits, and
-so on. `prefix` / `suffix` add static text around it:
-
-```jsx
-<Flow value={price} format={{ style: "currency", currency: "USD" }} />
-<Flow value={ratio} format={{ style: "percent", maximumFractionDigits: 1 }} />
-<Flow value={size} locales="en-US" suffix=" MB" />
-```
-
-`notation: "compact"` is supported; `"scientific"` and `"engineering"` are not.
-
-### Grouping several flows
-
-Wrap multiple `Flow`s in `FlowGroup` to keep their animations in
-lockstep when they update together:
-
-```jsx
-import { Flow, FlowGroup } from "metamorphosis/react";
-
-<FlowGroup>
-  <Flow value={hours} suffix="h" />
-  <Flow value={minutes} suffix="m" />
-</FlowGroup>;
-```
-
-### Continuous transitions
-
-The `continuous` plugin makes a digit appear to pass _through_ the numbers in
-between rather than cross-fading straight to the target:
-
-```jsx
-import { Flow, continuous } from "metamorphosis/react";
-
-<Flow value={value} plugins={[continuous]} />;
-```
-
-### Number props
-
-| Prop                      | Type                                | Default                                | Description                                                                            |
-| ------------------------- | ----------------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------- |
-| `value`                   | `number \| string`                  | —                                      | The number to display; animates whenever it changes.                                   |
-| `locales`                 | `Intl.LocalesArgument`              | runtime default                        | Locale(s) passed to `Intl.NumberFormat`.                                               |
-| `format`                  | `Intl.NumberFormat` options         | —                                      | Formatting options (currency, percent, unit, grouping, fraction digits…).              |
-| `prefix`                  | `string`                            | —                                      | Static text rendered before the number.                                                |
-| `suffix`                  | `string`                            | —                                      | Static text rendered after the number.                                                 |
-| `trend`                   | `number \| (old, value) => number`  | sign of the change                     | Force spin direction: `> 0` up, `< 0` down, `0` none.                                   |
-| `animated`                | `boolean`                           | `true`                                 | Set `false` to update the value with no animation.                                     |
-| `respectMotionPreference` | `boolean`                           | `true`                                 | Honor `prefers-reduced-motion`.                                                        |
-| `transformTiming`         | `EffectTiming`                      | 900ms spring-like `linear()`           | Timing for digit movement.                                                             |
-| `spinTiming`              | `EffectTiming`                      | falls back to `transformTiming`        | Timing for the vertical digit spin.                                                    |
-| `opacityTiming`           | `EffectTiming`                      | `{ duration: 450, easing: "ease-out" }`| Timing for entering/leaving parts fading in and out.                                   |
-| `digits`                  | `Record<number, { max?: number }>`  | —                                      | Per-place digit constraints (e.g. cap a position's max digit).                         |
-| `plugins`                 | `Plugin[]`                          | —                                      | Plugins such as `continuous`.                                                          |
-| `isolate`                 | `boolean`                           | `false`                                | Don't batch animation timing with other flows on the page.                            |
-| `willChange`              | `boolean`                           | `false`                                | Hint the browser to promote the animated layers.                                      |
-
-Also fires `onAnimationsStart` / `onAnimationsFinish` events and forwards standard
-HTML attributes (`className`, `style`, …). Exports: `Flow` (default and
-named), `FlowGroup`, `FlowElement` (the underlying custom-element
-class), `continuous`, and the types `FlowProps`, `Value`, `Format`, `Trend`.
-
-> Flow is a port of [`number-flow`](https://github.com/barvian/number-flow),
-> vendored so the package stays dependency-free. It requires modern CSS
-> (`mod()`, `linear()` easing, `@property`); where unsupported it renders the
-> formatted value without animating.
-
 ## Icon morphing
 
 `IconMorph` renders an icon and smoothly morphs it into another whenever its
@@ -347,22 +261,26 @@ collapses an unused line to the center.
 > dependency, loaded lazily) to read outlines. It reads `.ttf`, `.otf`, and
 > `.woff`/`.woff2` (fontkit bundles the WOFF2 decompressor), and can instance a
 > variable font to match a specific weight. This is the one morpher that isn't
-> dependency-free — text, icon, and flow have no runtime dependencies.
+> dependency-free — text and icon have no runtime dependencies.
 
-### A single letter in a word
+### Letters in a word
 
-`GlyphWord` renders a word as plain text with one inline morphing slot, so a
-single letter or number morphs in place while the rest stays put:
+`GlyphWord` renders a word as text with one or more inline morphing slots, so
+individual letters or numbers morph in place while the rest stays put:
 
 ```jsx
 import { GlyphWord } from "metamorphosis/react";
 
-{/* "co d e" → "co r e": only the third letter morphs */}
-<GlyphWord word="code" morphAt={2} char={letter} font="/fonts/Inter.woff2" />;
+{/* only the third letter morphs: "co d e" → "co r e" */}
+<GlyphWord word={word} morphAt={2} font="/fonts/Inter.woff2" />;
+
+{/* every character morphs as the time ticks */}
+<GlyphWord word={time} font="/fonts/Inter.woff2" />;
 ```
 
-`word` supplies the surrounding text; `morphAt` is the index of the slot; `char`
-is the character shown there (it morphs as it changes). All glyphs share `font`.
+`word` supplies the text and each morphing slot takes its glyph from that word.
+`morphAt` selects which characters morph — a single index or a list of indices;
+omit it to morph every character. All glyphs share `font`.
 
 ### Glyph props
 
@@ -372,6 +290,7 @@ is the character shown there (it morphs as it changes). All glyphs share `font`.
 | `font`                 | `string \| ArrayBuffer`    | —                | Font URL, or preloaded bytes, to read the outline from.  |
 | `color`                | `string`                   | `"currentColor"` | Fill color of the glyph.                                 |
 | `duration`             | `number` (ms)              | `400`            | Morph duration. Ignored when `ease` is a spring.         |
+| `blur`                 | `number` (em)              | `0.02`           | Peak blur, ramped in/out during the morph; `0` disables. |
 | `ease`                 | `string \| SpringParams`   | `cubic-bezier(0.22, 1, 0.36, 1)` | CSS easing string, or a spring config.   |
 | `disabled`             | `boolean`                  | `false`          | Swap instantly with no animation.                        |
 | `respectReducedMotion` | `boolean`                  | `true`           | Honor `prefers-reduced-motion`.                          |
@@ -410,11 +329,10 @@ pnpm build      # tsup → dist/ (esm + cjs + d.ts)
 pnpm dev        # watch mode
 ```
 
-The `demo/` directory is a Vite app showcasing all four morphers: cycling text,
-the cascade roll (a calendar stepper and a live clock), a draggable flow
-gauge, the three-line icon morph, a live clock whose seconds digit morphs its
-font outline (glyph morph), and copy-to-clipboard install/usage snippets that
-morph as you switch tabs.
+The `demo/` directory is a Vite app showcasing the morphers: cycling text,
+the cascade roll (a calendar stepper and a live clock), the three-line icon
+morph, a live clock whose seconds digit morphs its font outline (glyph morph),
+and copy-to-clipboard install/usage snippets that morph as you switch tabs.
 
 ```bash
 cd demo && pnpm install && pnpm dev
