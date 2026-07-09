@@ -1,6 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { TextMorph, IconMorph, GlyphMorph, GlyphWord } from "../../src/react";
-import { registerIcon } from "../../src/icon-morph";
 import { GlassGauge } from "./GlassGauge";
 import { IconLink } from "./IconLink";
 import { cascadeProps } from "./cascade";
@@ -88,25 +87,6 @@ const TRACKS = [
   { title: "Nightcall", artist: "Kavinsky" },
 ];
 
-// Two custom three-line icons for the connection toggle: three vertical bars
-// rising left-to-right when connected, collapsed to a flat low row when offline.
-// Because every icon is three lines in the same 24×24 box, the bars simply grow
-// and shrink between the two states.
-registerIcon("signal-on", {
-  lines: [
-    [6, 17, 6, 13],
-    [12, 17, 12, 9],
-    [18, 17, 18, 4],
-  ],
-});
-registerIcon("signal-off", {
-  lines: [
-    [6, 17, 6, 15],
-    [12, 17, 12, 15],
-    [18, 17, 18, 15],
-  ],
-});
-
 // A random letter matching the original's case, so hovering a title letter swaps
 // it for a same-cased glyph (uppercase "M" stays uppercase, and so on).
 const UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -164,9 +144,6 @@ export default function App() {
           {/* Icon morph — a media player's play/pause button */}
           <PlayerDemo />
 
-          {/* Custom icon — a connection toggle with hand-registered signal bars */}
-          <SignalDemo />
-
           {/* Install / usage — sits inside the wireframe grid as a final row */}
           <section className="page__install">
             <h2>Install</h2>
@@ -219,44 +196,31 @@ function RevealTitle({ children }) {
     });
 
   return (
-    <>
-      {/* A paint-server gradient the glyph SVGs fill with (fill: url(#…)), so the
-          title keeps its top→bottom fade even though an <svg> can't carry the
-          CSS background-clip gradient. Matches --text-gradient. */}
-      <svg width="0" height="0" aria-hidden="true" style={{ position: "absolute" }}>
-        <defs>
-          <linearGradient id="titleGradient" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#fff" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#fff" stopOpacity="0.3" />
-          </linearGradient>
-        </defs>
-      </svg>
-      <h1 className="page__title" aria-label={title}>
-        {chars.map((char, i) =>
-          char === " " ? (
-            <span key={i} aria-hidden="true" className="page__title-char">
-              {" "}
-            </span>
-          ) : (
-            <span
-              key={i}
-              aria-hidden="true"
-              className="page__title-char"
-              style={{ animationDelay: `${i * 0.04}s` }}
-              onMouseEnter={() => setChar(i, randomLetterLike(char))}
-              onMouseLeave={() => setChar(i, char)}
-            >
-              <GlyphMorph
-                char={display[i]}
-                font={GLYPH_FONT}
-                color="url(#titleGradient)"
-                ease={{ stiffness: 320, damping: 26 }}
-              />
-            </span>
-          ),
-        )}
-      </h1>
-    </>
+    <h1 className="page__title" aria-label={title}>
+      {chars.map((char, i) =>
+        char === " " ? (
+          <span key={i} aria-hidden="true" className="page__title-char">
+            {" "}
+          </span>
+        ) : (
+          <span
+            key={i}
+            aria-hidden="true"
+            className="page__title-char"
+            style={{ animationDelay: `${i * 0.04}s` }}
+            onMouseEnter={() => setChar(i, randomLetterLike(char))}
+            onMouseLeave={() => setChar(i, char)}
+          >
+            <GlyphMorph
+              char={display[i]}
+              font={GLYPH_FONT}
+              color="#fff"
+              ease={{ stiffness: 320, damping: 26 }}
+            />
+          </span>
+        ),
+      )}
+    </h1>
   );
 }
 
@@ -496,38 +460,6 @@ function PlayerDemo() {
             </button>
           </div>
         </div>
-      </div>
-    </section>
-  );
-}
-
-/**
- * Connection toggle — a status control built on two hand-registered three-line
- * icons ("signal-on" / "signal-off"). Tapping morphs the signal bars between
- * states and morphs the label between "Connected" and "Offline".
- */
-function SignalDemo() {
-  const [online, setOnline] = useState(true);
-
-  return (
-    <section className="demo demo--signal">
-      <div className="demo__container wide">
-        <span className="demo__label">Custom Icon</span>
-        <button
-          type="button"
-          className={`signal${online ? " is-online" : ""}`}
-          onClick={() => setOnline((o) => !o)}
-          aria-pressed={online}
-        >
-          <IconMorph
-            name={online ? "signal-on" : "signal-off"}
-            size={22}
-            strokeWidth={2.4}
-          />
-          <TextMorph className="signal__label" granularity="grapheme">
-            {online ? "Connected" : "Offline"}
-          </TextMorph>
-        </button>
       </div>
     </section>
   );

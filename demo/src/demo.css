@@ -221,7 +221,7 @@
     rgba(255, 255, 255, 0.3) 100%
   );
   --text-strong: rgba(255, 255, 255, 0.9);
-  --text-soft: rgba(255, 255, 255, 0.6);
+  --text-soft: rgba(255, 255, 255, 0.8);
   --glass-fill: #788d83;
   --glass-highlight: linear-gradient(180deg, #7a8c89 0%, #98a79f 100%);
   /* A soft drop shadow plus a beveled steel rim — light along the top/bottom
@@ -299,11 +299,7 @@ h6 {
 .demo__text [metamorphosis-item],
 .stepper__label,
 .stepper__label [metamorphosis-item] {
-  background-image: var(--text-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  color: white;
 }
 
 p {
@@ -333,7 +329,7 @@ a {
     font-style: normal;
     font-size: 3rem;
     font-feature-settings: "dlig" on;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.0225em;
     font-weight: 400;
   }
 }
@@ -351,18 +347,14 @@ a {
    (same logic as the stepper morph). Letters keep their final layout — only
    opacity/transform animate — so the title never shifts as it appears. The
    per-letter delay is set inline; the easing is smooth (no bounce). */
-/* Each title letter is a GlyphMorph <svg> filled from the #titleGradient paint
-   server (set in App.jsx), so it keeps the top→bottom fade; the gradient text-clip
-   here covers the plain-text fallback shown while the font loads. Hovering a
-   letter morphs its outline into a same-cased random glyph (handled in App.jsx). */
+/* Each title letter is a white-filled GlyphMorph <svg> (color set in App.jsx);
+   the white text here covers the plain-text fallback shown while the font loads.
+   Hovering a letter morphs its outline into a same-cased random glyph (handled
+   in App.jsx). */
 .page__title-char {
   display: inline-block;
   white-space: pre;
-  background-image: var(--text-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  color: #fff;
   animation: title-rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -486,8 +478,7 @@ a {
 .demo--status .demo__label,
 .demo--pricing .demo__label,
 .demo--score .demo__label,
-.demo--player .demo__label,
-.demo--signal .demo__label {
+.demo--player .demo__label {
   top: auto;
   bottom: 1.6rem;
 }
@@ -1017,68 +1008,6 @@ a {
 
 .player__transport:active {
   transform: scale(0.94);
-}
-
-/* ── Connection toggle (Custom Icon) ─────────────────────────────────────── */
-
-.signal {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1.1rem 1.9rem 1.1rem 1.6rem;
-  border: none;
-  border-radius: 999px;
-  background: var(--glass-fill);
-  color: rgba(255, 255, 255, 0.9);
-  font-family: var(--font-sans);
-  cursor: pointer;
-  overflow: hidden;
-  box-shadow: var(--glass-shadow), var(--glass-bevel);
-  transition:
-    transform 0.15s ease,
-    background 0.4s ease,
-    color 0.4s ease;
-}
-
-.signal::before {
-  content: "";
-  position: absolute;
-  left: 0.6rem;
-  right: 0.6rem;
-  top: 40%;
-  bottom: -3px;
-  border-radius: 999px;
-  background: var(--glass-highlight);
-  filter: blur(2.5px);
-  pointer-events: none;
-}
-
-.signal > * {
-  position: relative;
-  z-index: 1;
-}
-
-.signal__label {
-  font-size: 1.7rem;
-  font-weight: 450;
-  letter-spacing: -0.01em;
-  color: #fff;
-}
-
-.signal:active {
-  transform: scale(0.97);
-}
-
-/* Offline: dim the whole control (the icon inherits currentColor, so its bars
-   dim with the label). */
-.signal:not(.is-online) {
-  background: #6a726b;
-  color: rgba(255, 255, 255, 0.55);
-}
-
-.signal:not(.is-online) .signal__label {
-  color: rgba(255, 255, 255, 0.55);
 }
 
 /* Frosted reflection — a blurred lighter sheet pooling toward the bottom of
