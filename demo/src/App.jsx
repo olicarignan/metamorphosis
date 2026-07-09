@@ -24,10 +24,10 @@ const GLYPH_SPRING = { stiffness: 180, damping: 22 };
 
 // Install command per package manager — the morph target for the install tabs.
 const INSTALL = [
-  { id: "pnpm", cmd: "pnpm i github:olicarignan/metamorphosis" },
-  { id: "npm", cmd: "npm i github:olicarignan/metamorphosis" },
-  { id: "bun", cmd: "bun i github:olicarignan/metamorphosis" },
-  { id: "yarn", cmd: "yarn add github:olicarignan/metamorphosis" },
+  { id: "pnpm", cmd: "pnpm add @ocarignan/metamorphosis" },
+  { id: "npm", cmd: "npm install @ocarignan/metamorphosis" },
+  { id: "bun", cmd: "bun add @ocarignan/metamorphosis" },
+  { id: "yarn", cmd: "yarn add @ocarignan/metamorphosis" },
 ];
 
 // Usage snippets — the pills in the usage section switch between them.
@@ -35,21 +35,21 @@ const USAGE = [
   {
     id: "text",
     label: "Text",
-    code: `import { TextMorph } from "metamorphosis/react";
+    code: `import { TextMorph } from "@ocarignan/metamorphosis/react";
 
 <TextMorph>{value}</TextMorph>;`,
   },
   {
     id: "glyph",
     label: "Glyph",
-    code: `import { GlyphMorph } from "metamorphosis/react";
+    code: `import { GlyphMorph } from "@ocarignan/metamorphosis/react";
 
 <GlyphMorph char={digit} font="/fonts/Inter.woff2" />;`,
   },
   {
     id: "icon",
     label: "Icon",
-    code: `import { IconMorph } from "metamorphosis/react";
+    code: `import { IconMorph } from "@ocarignan/metamorphosis/react";
 
 <IconMorph name={open ? "close" : "menu"} />;`,
   },
@@ -400,7 +400,7 @@ function CopyMorphDemo() {
     setCopied(true);
     clearTimeout(resetTimer.current);
     resetTimer.current = setTimeout(() => setCopied(false), 1600);
-    copyText("npm i github:olicarignan/metamorphosis");
+    copyText("npm install @ocarignan/metamorphosis");
   };
 
   return (

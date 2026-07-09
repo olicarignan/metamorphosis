@@ -4,7 +4,7 @@ A **morphing animation library**. It ships three morphers:
 
 - **Text** — text that morphs character-by-character (or word-by-word) between
   values. Core `MorphController` plus a React adapter (`TextMorph`, `useTextMorph`).
-- **Icons** — a three-line icon component where any icon smoothly morphs into any
+- **Icons** — a line-drawn icon component where any icon smoothly morphs into any
   other. React adapter (`IconMorph`, `useIconMorph`) plus a framework-agnostic
   `IconMorphController`.
 - **Glyphs** — a single character whose real font outline morphs into the next
@@ -15,14 +15,10 @@ read font outlines.
 
 ## Install
 
-As a git dependency (no npm publish needed):
-
 ```bash
-pnpm add github:olicarignan/metamorphosis
+pnpm add @ocarignan/metamorphosis
+# or: npm install @ocarignan/metamorphosis
 ```
-
-The package has a `prepare` script, so the consumer's install builds `dist/`
-automatically from source.
 
 Peer deps (for the React adapter): `react`, `react-dom` (>=18). They're
 optional — the framework-agnostic core works without React.
@@ -30,7 +26,7 @@ optional — the framework-agnostic core works without React.
 ## Usage (React)
 
 ```jsx
-import { TextMorph } from "metamorphosis/react";
+import { TextMorph } from "@ocarignan/metamorphosis/react";
 
 <TextMorph as="h3">{title}</TextMorph>;
 ```
@@ -118,7 +114,7 @@ values:
 For full control over the element, use the hook directly:
 
 ```jsx
-import { useTextMorph } from "metamorphosis/react";
+import { useTextMorph } from "@ocarignan/metamorphosis/react";
 
 function Counter({ value }) {
   const { ref, update } = useTextMorph({ granularity: "grapheme" });
@@ -136,7 +132,7 @@ function Counter({ value }) {
 The controller is exported from the root for use without React:
 
 ```js
-import { MorphController } from "metamorphosis";
+import { MorphController } from "@ocarignan/metamorphosis";
 
 const controller = new MorphController();
 controller.attach(element, { granularity: "grapheme", ease: { stiffness: 200, damping: 14 } });
@@ -154,38 +150,38 @@ defaults at runtime.
 `name` changes:
 
 ```jsx
-import { IconMorph } from "metamorphosis/react";
+import { IconMorph } from "@ocarignan/metamorphosis/react";
 
 <IconMorph name={open ? "close" : "menu"} />;
 ```
 
-Every icon is exactly **three SVG lines** in a shared 24×24 box, so any icon can
-morph into any other: each of the three line segments interpolates from the old
-position to the new one. Icons that need fewer lines collapse the extras to an
+Every icon is drawn from a shared budget of **up to six SVG lines** in a 24×24
+box, so any icon can morph into any other: each line segment interpolates from the
+old position to the new one. Icons that need fewer lines collapse the extras to an
 invisible point at the center, and icons that are the same shape at different
 rotations (like arrows) **rotate** instead of moving points — taking the shortest
 way around.
 
 ### Built-in icons
 
-`menu`, `close`, `plus`, `minus`, `equals`, `check`, `play`, `pause`,
+`menu`, `close`, `plus`, `minus`, `equals`, `check`, `copy`, `play`, `pause`,
 `arrow-up` / `arrow-right` / `arrow-down` / `arrow-left`, and
 `chevron-up` / `chevron-right` / `chevron-down` / `chevron-left`.
 
 ```jsx
-import { iconNames } from "metamorphosis/icon-morph";
+import { iconNames } from "@ocarignan/metamorphosis/icon-morph";
 
 iconNames(); // -> ["menu", "close", "plus", ...]
 ```
 
 ### Custom icons
 
-Register your own three-line icon (a fourth line is ignored; fewer are padded
-with collapsed center points). Coordinates are in the 24×24 box, `rotation` is in
-degrees:
+Register your own line icon — up to six segments (any beyond six are ignored;
+fewer are padded with collapsed center points). Coordinates are in the 24×24 box,
+`rotation` is in degrees:
 
 ```js
-import { registerIcon } from "metamorphosis/icon-morph";
+import { registerIcon } from "@ocarignan/metamorphosis/icon-morph";
 
 registerIcon("divide", {
   lines: [
@@ -226,7 +222,7 @@ React-only props: `as` (host element, default `"span"`), `className`, `style`.
 ### Core (framework-agnostic)
 
 ```js
-import { IconMorphController } from "metamorphosis/icon-morph";
+import { IconMorphController } from "@ocarignan/metamorphosis/icon-morph";
 
 const icon = new IconMorphController();
 icon.attach(element, { size: 28, ease: { stiffness: 200, damping: 14 } });
@@ -246,7 +242,7 @@ It reads the outline from a font you point it at, so the morphing character
 matches the surrounding text's family, weight, size, and baseline.
 
 ```jsx
-import { GlyphMorph } from "metamorphosis/react";
+import { GlyphMorph } from "@ocarignan/metamorphosis/react";
 
 <GlyphMorph char={digit} font="/fonts/Inter.woff2" />;
 ```
@@ -269,7 +265,7 @@ collapses an unused line to the center.
 individual letters or numbers morph in place while the rest stays put:
 
 ```jsx
-import { GlyphWord } from "metamorphosis/react";
+import { GlyphWord } from "@ocarignan/metamorphosis/react";
 
 {/* only the third letter morphs: "co d e" → "co r e" */}
 <GlyphWord word={word} morphAt={2} font="/fonts/Inter.woff2" />;
@@ -291,6 +287,8 @@ omit it to morph every character. All glyphs share `font`.
 | `color`                | `string`                   | `"currentColor"` | Fill color of the glyph.                                 |
 | `duration`             | `number` (ms)              | `400`            | Morph duration. Ignored when `ease` is a spring.         |
 | `blur`                 | `number` (em)              | `0.02`           | Peak blur, ramped in/out during the morph; `0` disables. |
+| `blurEnd`              | `number` (0–1)             | `0.5`            | Fraction of the morph by which blur has risen and fallen back to 0 (glyph is crisp for the rest). Lower clears earlier. |
+| `blurCurve`            | `number`                   | `2`              | Shoulder sharpness of the blur envelope. `1` is a plain sine bell; higher lingers less at the edges. |
 | `ease`                 | `string \| SpringParams`   | `cubic-bezier(0.22, 1, 0.36, 1)` | CSS easing string, or a spring config.   |
 | `disabled`             | `boolean`                  | `false`          | Swap instantly with no animation.                        |
 | `respectReducedMotion` | `boolean`                  | `true`           | Honor `prefers-reduced-motion`.                          |
@@ -310,7 +308,7 @@ solid `color` on the container) so the glyph has something to paint with.
 ### Core (framework-agnostic)
 
 ```js
-import { GlyphMorphController } from "metamorphosis/glyph-morph";
+import { GlyphMorphController } from "@ocarignan/metamorphosis/glyph-morph";
 
 const glyph = new GlyphMorphController();
 glyph.attach(element, { font: "/fonts/Inter.woff2", ease: { stiffness: 180, damping: 16 } });
@@ -330,7 +328,7 @@ pnpm dev        # watch mode
 ```
 
 The `demo/` directory is a Vite app showcasing the morphers: cycling text,
-the cascade roll (a calendar stepper and a live clock), the three-line icon
+the cascade roll (a calendar stepper and a live clock), the line-drawn icon
 morph, a live clock whose seconds digit morphs its font outline (glyph morph),
 and copy-to-clipboard install/usage snippets that morph as you switch tabs.
 
