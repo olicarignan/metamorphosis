@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { TextMorph, IconMorph, GlyphMorph, GlyphWord } from "../../src/react";
-import { GlassGauge } from "./GlassGauge";
+import { iconNames } from "../../src/icon-morph";
 import { IconLink } from "./IconLink";
 import { cascadeProps } from "./cascade";
 
@@ -9,15 +9,6 @@ import { cascadeProps } from "./cascade";
 // directly (bundled brotli); the parsed font is cached per URL, so every
 // GlyphMorph on the page shares a single fetch + parse.
 const GLYPH_FONT = "/fonts/SuisseIntl/Suisse%20Intl%20Regular.woff2";
-
-const WORDS = [
-  "transform",
-  "animate",
-  "mutate",
-  "metamorphose",
-  "shift",
-  "permute",
-];
 
 // A gentler, slower morph for the install/usage snippets — a smooth, symmetric
 // ease-in-out (vs. the default snappy easeOutQuint) over a longer duration, so
@@ -80,13 +71,6 @@ const PLANS = [
   { id: "yearly", label: "Yearly", price: "$19" },
 ];
 
-// Now-playing tracks — skipping morphs the title and artist to the next.
-const TRACKS = [
-  { title: "Midnight City", artist: "M83" },
-  { title: "Instant Crush", artist: "Daft Punk" },
-  { title: "Nightcall", artist: "Kavinsky" },
-];
-
 // A random letter matching the original's case, so hovering a title letter swaps
 // it for a same-cased glyph (uppercase "M" stays uppercase, and so on).
 const UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -98,16 +82,6 @@ const randomLetterLike = (orig) => {
 };
 
 export default function App() {
-  const [wordIndex, setWordIndex] = useState(0);
-
-  // Cycle the hero word on a timer.
-  useEffect(() => {
-    const id = setInterval(() => {
-      setWordIndex((i) => (i + 1) % WORDS.length);
-    }, 1800);
-    return () => clearInterval(id);
-  }, []);
-
   return (
     <main className="page">
       <div className="container">
@@ -119,14 +93,6 @@ export default function App() {
         </header>
 
         <div className="demos">
-          {/* Word morph — the hero verb, cycling on a timer */}
-          <section className="demo">
-            <div className="demo__container wide">
-              <span className="demo__label">Word Morph</span>
-              <TextMorph className="demo__text">{WORDS[wordIndex]}</TextMorph>
-            </div>
-          </section>
-
           {/* State morph — an auto-cycling status pill: the label morphs
               (TextMorph) while a bespoke SVG badge completes from a spinner into
               a checkmark badge */}
@@ -138,11 +104,14 @@ export default function App() {
           {/* Glyph word — a pricing card whose digits reshape on toggle */}
           <PricingDemo />
 
-          {/* Glyph morph — a single review-score numeral reshapes on re-roll */}
+          {/* Random number — cascade-rolls a new value on re-roll */}
           <ScoreDemo />
 
-          {/* Icon morph — a media player's play/pause button */}
-          <PlayerDemo />
+          {/* Icon morph — a copy-to-clipboard button morphing to a checkmark */}
+          <CopyMorphDemo />
+
+          {/* Icon morph — a button cycling through every bundled icon */}
+          <IconCycleDemo />
 
           {/* Install / usage — sits inside the wireframe grid as a final row */}
           <section className="page__install">
@@ -233,7 +202,10 @@ function StatusDemo() {
   const [i, setI] = useState(0);
 
   useEffect(() => {
-    const id = setInterval(() => setI((n) => (n + 1) % STATUS_STATES.length), 2600);
+    const id = setInterval(
+      () => setI((n) => (n + 1) % STATUS_STATES.length),
+      2600,
+    );
     return () => clearInterval(id);
   }, []);
 
@@ -242,7 +214,6 @@ function StatusDemo() {
   return (
     <section className="demo demo--status">
       <div className="demo__container wide">
-        <span className="demo__label">State Morph</span>
         <div className="status">
           <span className="status__icon">
             <StatusBadge confirmed={state.confirmed} />
@@ -326,7 +297,6 @@ function PricingDemo() {
   return (
     <section className="demo demo--pricing">
       <div className="demo__container wide">
-        <span className="demo__label">Glyph Word</span>
         <div className="pricing">
           <div className="pricing__price">
             <GlyphWord
@@ -351,17 +321,17 @@ function PricingDemo() {
 }
 
 /**
- * Review score — a single big numeral rendered with GlyphMorph. Re-rolling picks
- * a new digit and the outline morphs into it in place.
+ * Random number — a large number rendered with TextMorph. Re-rolling picks a new
+ * value in 0–999 and the digits cascade-roll into place.
  */
 function ScoreDemo() {
-  const [score, setScore] = useState(9);
+  const [score, setScore] = useState(42);
 
   const reroll = () =>
     setScore((s) => {
       let n;
       do {
-        n = Math.floor(Math.random() * 10);
+        n = Math.floor(Math.random() * 1000);
       } while (n === s);
       return n;
     });
@@ -369,16 +339,11 @@ function ScoreDemo() {
   return (
     <section className="demo demo--score">
       <div className="demo__container wide">
-        <span className="demo__label">Glyph Morph</span>
         <div className="score">
           <div className="score__value">
-            <GlyphMorph
-              char={String(score)}
-              font={GLYPH_FONT}
-              color="var(--text-strong)"
-              ease={GLYPH_SPRING}
-            />
-            <span className="score__meta">/10</span>
+            <TextMorph className="score__number" {...cascadeProps()}>
+              {String(score)}
+            </TextMorph>
           </div>
           <button type="button" className="score__button" onClick={reroll}>
             Re-roll
@@ -389,77 +354,112 @@ function ScoreDemo() {
   );
 }
 
+// Best-effort clipboard write. Prefers the async Clipboard API (secure contexts)
+// and falls back to a hidden-textarea + execCommand for insecure contexts like
+// http://<lan-ip> on a phone, where navigator.clipboard is unavailable.
+function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).catch(fallbackCopy);
+  } else {
+    fallbackCopy();
+  }
+
+  function fallbackCopy() {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  }
+}
+
 /**
- * Media player — a mini now-playing card. The center transport button's icon
- * morphs between play and pause (IconMorph); prev/next skip tracks (morphing the
- * title/artist too), and a GlassGauge scrubs the progress, ticking while playing.
+ * Copy button — a glass pill pairing a copy-to-clipboard icon that morphs into a
+ * checkmark on click (IconMorph) with a label that morphs "copy" → "copied"
+ * (TextMorph), both reverting after a short beat.
  */
-function PlayerDemo() {
-  const [playing, setPlaying] = useState(false);
-  const [track, setTrack] = useState(0);
-  const [progress, setProgress] = useState(32);
+function CopyMorphDemo() {
+  const [copied, setCopied] = useState(false);
+  const resetTimer = useRef(null);
 
-  // Advance the scrubber while playing; wrap at the end.
-  useEffect(() => {
-    if (!playing) return;
-    const id = setInterval(() => {
-      setProgress((p) => (p >= 100 ? 0 : p + 1));
-    }, 280);
-    return () => clearInterval(id);
-  }, [playing]);
+  useEffect(() => () => clearTimeout(resetTimer.current), []);
 
-  const skip = (dir) => {
-    setTrack((t) => (t + dir + TRACKS.length) % TRACKS.length);
-    setProgress(0);
+  const copy = () => {
+    // Fire the morph on every tap. The demo is about the morph, so the visual
+    // feedback must not hinge on the clipboard write — which throws in insecure
+    // contexts (e.g. viewing the dev server over http://<lan-ip> on a phone,
+    // where navigator.clipboard is undefined).
+    setCopied(true);
+    clearTimeout(resetTimer.current);
+    resetTimer.current = setTimeout(() => setCopied(false), 1600);
+    copyText("npm i github:olicarignan/metamorphosis");
   };
 
   return (
-    <section className="demo demo--player">
+    <section className="demo demo--copy">
       <div className="demo__container wide">
-        <span className="demo__label">Icon Morph</span>
-        <div className="player">
-          <div className="player__meta">
-            <TextMorph className="player__title" granularity="grapheme">
-              {TRACKS[track].title}
+        <button
+          type="button"
+          className="copy-morph"
+          onClick={copy}
+          aria-label={copied ? "Copied" : "Copy install command"}
+        >
+          <IconMorph
+            name={copied ? "check" : "copy"}
+            size={20}
+            strokeWidth={2}
+            ease={GLYPH_SPRING}
+          />
+          {/* A hidden sizer holding the wider word pins the label slot's width,
+              so the centered pill never resizes (and re-centers) as the label
+              morphs and settles — which otherwise reads as a jump. */}
+          <span className="copy-morph__label">
+            <TextMorph className="copy-morph__text">
+              {copied ? "copied" : "copy"}
             </TextMorph>
-            <TextMorph className="player__artist" granularity="grapheme">
-              {TRACKS[track].artist}
-            </TextMorph>
-          </div>
+          </span>
+        </button>
+      </div>
+    </section>
+  );
+}
 
-          <GlassGauge value={progress} onChange={setProgress} label="Seek" />
+// Every bundled icon, resolved once — the cycle demo steps through these in order.
+const ICON_NAMES = iconNames();
 
-          <div className="player__controls">
-            <button
-              type="button"
-              className="player__transport"
-              onClick={() => skip(-1)}
-              aria-label="Previous track"
-            >
-              <IconMorph name="arrow-left" size={18} strokeWidth={2.2} />
-            </button>
-            <button
-              type="button"
-              className="player__transport player__transport--play"
-              onClick={() => setPlaying((p) => !p)}
-              aria-label={playing ? "Pause" : "Play"}
-            >
-              <IconMorph
-                name={playing ? "pause" : "play"}
-                size={24}
-                strokeWidth={2.2}
-              />
-            </button>
-            <button
-              type="button"
-              className="player__transport"
-              onClick={() => skip(1)}
-              aria-label="Next track"
-            >
-              <IconMorph name="arrow-right" size={18} strokeWidth={2.2} />
-            </button>
-          </div>
-        </div>
+/**
+ * Icon gallery — a glass disc button that morphs through every bundled IconMorph
+ * icon in turn, wrapping back to the first at the end.
+ */
+function IconCycleDemo() {
+  const [index, setIndex] = useState(0);
+
+  const next = () => setIndex((i) => (i + 1) % ICON_NAMES.length);
+
+  return (
+    <section className="demo demo--icons">
+      <div className="demo__container wide">
+        <button
+          type="button"
+          className="icon-cycle"
+          onClick={next}
+          aria-label={`Next icon (${ICON_NAMES[index]})`}
+        >
+          <IconMorph
+            name={ICON_NAMES[index]}
+            size={32}
+            strokeWidth={2}
+            ease={GLYPH_SPRING}
+          />
+        </button>
       </div>
     </section>
   );
@@ -648,15 +648,14 @@ function CopyButton({ text, label = "Copy", className = "" }) {
 
   useEffect(() => () => clearTimeout(resetTimer.current), []);
 
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      clearTimeout(resetTimer.current);
-      resetTimer.current = setTimeout(() => setCopied(false), 1500);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
+  const copy = () => {
+    // Show the copied state on every tap, independent of the clipboard write —
+    // which throws in insecure contexts (e.g. the dev server over http://<lan-ip>
+    // on a phone), leaving the button looking unresponsive.
+    setCopied(true);
+    clearTimeout(resetTimer.current);
+    resetTimer.current = setTimeout(() => setCopied(false), 1500);
+    copyText(text);
   };
 
   return (
@@ -779,7 +778,6 @@ function CalendarStepper() {
   return (
     <section className="demo demo--stepper">
       <div className="demo__container wide">
-        <span className="demo__label">Cascade</span>
         <div className="stepper">
           <button
             type="button"

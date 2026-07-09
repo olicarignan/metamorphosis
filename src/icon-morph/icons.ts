@@ -4,13 +4,19 @@ import type { IconDef, LineDef } from "./types";
 export const VIEW = 24;
 export const CENTER = VIEW / 2; // 12
 
+// Every resolved icon is padded to exactly this many line segments, so any icon
+// morphs cleanly into any other (extra slots collapse to an invisible center
+// point). Bump this only if a new icon needs more strokes — it sets how many
+// <line> elements the engine renders per icon.
+export const MAX_LINES = 6;
+
 const C = CENTER;
 const COLLAPSED: LineDef = [C, C, C, C];
 
-/** Clone up to three lines and pad the rest with collapsed center points. */
+/** Clone up to MAX_LINES lines and pad the rest with collapsed center points. */
 function def(lines: LineDef[], rotation = 0): IconDef {
-  const out = lines.slice(0, 3).map((l) => [...l] as LineDef);
-  while (out.length < 3) out.push([...COLLAPSED] as LineDef);
+  const out = lines.slice(0, MAX_LINES).map((l) => [...l] as LineDef);
+  while (out.length < MAX_LINES) out.push([...COLLAPSED] as LineDef);
   return { lines: out, rotation };
 }
 
@@ -48,6 +54,16 @@ export const ICONS: Record<string, IconDef> = {
   check: def([
     [5, 13, 10, 18],
     [10, 18, 19, 7],
+  ]),
+  // Copy / duplicate: a front page (full square) with a back page peeking out
+  // top-left as an L. Round linecaps soften the corners into a rounded-rect look.
+  copy: def([
+    [9, 9, 20, 9], // front: top
+    [20, 9, 20, 20], // front: right
+    [20, 20, 9, 20], // front: bottom
+    [9, 20, 9, 9], // front: left
+    [4, 4, 15, 4], // back: top edge peeking out
+    [4, 4, 4, 15], // back: left edge peeking out
   ]),
   play: def([
     [8, 5, 8, 19],
