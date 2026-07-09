@@ -101,6 +101,9 @@ export default function App() {
           {/* Cascade — step through calendar days, morphing the date label */}
           <CalendarStepper />
 
+          {/* Icon morph — a button cycling through every bundled icon */}
+          <IconCycleDemo />
+
           {/* Glyph word — a pricing card whose digits reshape on toggle */}
           <PricingDemo />
 
@@ -109,9 +112,6 @@ export default function App() {
 
           {/* Icon morph — a copy-to-clipboard button morphing to a checkmark */}
           <CopyMorphDemo />
-
-          {/* Icon morph — a button cycling through every bundled icon */}
-          <IconCycleDemo />
 
           {/* Install / usage — sits inside the wireframe grid as a final row */}
           <section className="page__install">
