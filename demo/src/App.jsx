@@ -284,8 +284,15 @@ function StatusDemo() {
             <StatusBadge confirmed={state.confirmed} />
           </span>
           {/* Word granularity so the shared "Transaction" segment persists and
-              slides intact between states, rather than reshuffling per-letter. */}
-          <TextMorph className="status__label" granularity="word">
+              slides intact between states, rather than reshuffling per-letter.
+              The default 400ms morph feels rushed against the ~2.6s state hold,
+              so slow it to let the words glide (same ease-out as the badge). */}
+          <TextMorph
+            className="status__label"
+            granularity="word"
+            duration={650}
+            ease="cubic-bezier(0.22, 1, 0.36, 1)"
+          >
             {state.label}
           </TextMorph>
         </div>

@@ -730,7 +730,7 @@ a {
   display: inline-flex;
   align-items: center;
   gap: 0.9rem;
-  padding: 1.2rem 2.2rem;
+  padding: 1.2rem 1.6rem;
   border-radius: 999px;
   background: var(--glass-fill);
   overflow: hidden;
