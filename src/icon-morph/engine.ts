@@ -1,5 +1,5 @@
 import type { IconMorphOptions, IconDef, LineDef } from "./types";
-import { ICONS, VIEW, CENTER } from "./icons";
+import { ICONS, VIEW, CENTER, MAX_LINES } from "./icons";
 import { spring as resolveSpring, springEasingFn } from "../shared/spring";
 import {
   type ReducedMotionState,
@@ -26,7 +26,7 @@ type LineState = {
   opacity: number;
 };
 type IconState = {
-  lines: [LineState, LineState, LineState];
+  lines: LineState[];
   rotation: number;
 };
 
@@ -42,17 +42,13 @@ function resolveState(d: IconDef): IconState {
     x2: l[2],
     y2: l[3],
     opacity: isCollapsed(l) ? 0 : 1,
-  })) as [LineState, LineState, LineState];
+  }));
   return { lines, rotation: d.rotation ?? 0 };
 }
 
 function cloneState(s: IconState): IconState {
   return {
-    lines: s.lines.map((l) => ({ ...l })) as [
-      LineState,
-      LineState,
-      LineState,
-    ],
+    lines: s.lines.map((l) => ({ ...l })),
     rotation: s.rotation,
   };
 }
@@ -128,7 +124,7 @@ export class IconMorph {
     this.group = document.createElementNS(SVG_NS, "g");
     svg.appendChild(this.group);
 
-    this.lineEls = [0, 1, 2].map(() => {
+    this.lineEls = Array.from({ length: MAX_LINES }, () => {
       const ln = document.createElementNS(SVG_NS, "line");
       this.group.appendChild(ln);
       return ln;
@@ -192,7 +188,7 @@ export class IconMorph {
             y2: lerp(fl.y2, tl.y2, t),
             opacity: lerp(fl.opacity, tl.opacity, t),
           };
-        }) as [LineState, LineState, LineState],
+        }),
       };
 
       this.current = state;
@@ -216,7 +212,7 @@ export class IconMorph {
       "transform",
       `rotate(${round(s.rotation)} ${CENTER} ${CENTER})`,
     );
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < this.lineEls.length; i++) {
       const el = this.lineEls[i]!;
       const l = s.lines[i]!;
       el.setAttribute("x1", String(round(l.x1)));

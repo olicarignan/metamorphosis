@@ -8,11 +8,12 @@ import type { SpringParams } from "../shared/spring";
 export type LineDef = [number, number, number, number];
 
 /**
- * An icon as up to three line segments plus an optional rotation (degrees).
- * Fewer than three lines are padded with collapsed center points, so every
- * resolved icon has exactly three lines and any icon morphs cleanly into any
- * other. Rotational variants (e.g. arrows) share identical `lines` and differ
- * only in `rotation`, so morphing between them rotates instead of moving points.
+ * An icon as a list of line segments plus an optional rotation (degrees). Icons
+ * are padded up to a shared maximum (`MAX_LINES`) with collapsed center points,
+ * so every resolved icon has the same line count and any icon morphs cleanly
+ * into any other. Rotational variants (e.g. arrows) share identical `lines` and
+ * differ only in `rotation`, so morphing between them rotates instead of moving
+ * points.
  */
 export interface IconDef {
   lines: LineDef[];

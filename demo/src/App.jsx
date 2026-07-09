@@ -1,18 +1,14 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { TextMorph, IconMorph, GlyphWord } from "../../src/react";
+import { TextMorph, IconMorph, GlyphMorph, GlyphWord } from "../../src/react";
+import { iconNames } from "../../src/icon-morph";
 import { IconLink } from "./IconLink";
 import { cascadeProps } from "./cascade";
 
-const WORDS = [
-  "transform",
-  "animate",
-  "mutate",
-  "metamorphose",
-  "shift",
-  "permute",
-];
-// Live clock — always the time with seconds, ticking each second.
-const clockFormat = (d) => d.toLocaleTimeString("en-GB", { hour12: false });
+// Suisse Intl Regular — the same WOFF2 the demo text renders in, so morphing
+// glyphs match their neighbors' weight, size, and baseline. fontkit reads WOFF2
+// directly (bundled brotli); the parsed font is cached per URL, so every
+// GlyphMorph on the page shares a single fetch + parse.
+const GLYPH_FONT = "/fonts/SuisseIntl/Suisse%20Intl%20Regular.woff2";
 
 // A gentler, slower morph for the install/usage snippets — a smooth, symmetric
 // ease-in-out (vs. the default snappy easeOutQuint) over a longer duration, so
@@ -21,6 +17,10 @@ const SMOOTH_MORPH = {
   ease: "cubic-bezier(0.33, 1, 0.68, 1)",
   duration: 350,
 };
+
+// A springy morph shared by the glyph demos (pricing, score) — a touch of bounce
+// as the outlines settle.
+const GLYPH_SPRING = { stiffness: 180, damping: 22 };
 
 // Install command per package manager — the morph target for the install tabs.
 const INSTALL = [
@@ -55,60 +55,63 @@ const USAGE = [
   },
 ];
 
+// An auto-cycling status pill morphs between these two states — the label morphs
+// (TextMorph) while a bespoke SVG badge completes its ring from a 3/4-circle
+// spinner into a checkmark badge.
+const STATUS_STATES = [
+  { label: "Processing Transaction", confirmed: false },
+  { label: "Transaction Approved", confirmed: true },
+];
+
+// Pricing plans — the same per-month price at monthly vs. annual billing. Kept
+// the same length ("$24" / "$19") so every digit reshapes on toggle rather than
+// a new slot popping in.
+const PLANS = [
+  { id: "monthly", label: "Monthly", price: "$24" },
+  { id: "yearly", label: "Yearly", price: "$19" },
+];
+
+// A random letter matching the original's case, so hovering a title letter swaps
+// it for a same-cased glyph (uppercase "M" stays uppercase, and so on).
+const UPPER = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const LOWER = "abcdefghijklmnopqrstuvwxyz";
+const randomLetterLike = (orig) => {
+  const isUpper = orig === orig.toUpperCase() && orig !== orig.toLowerCase();
+  const pool = isUpper ? UPPER : LOWER;
+  return pool[Math.floor(Math.random() * pool.length)];
+};
+
 export default function App() {
-  const [wordIndex, setWordIndex] = useState(0);
-  const [now, setNow] = useState(() => new Date());
-
-  // Cycle the hero word on a timer.
-  useEffect(() => {
-    const id = setInterval(() => {
-      setWordIndex((i) => (i + 1) % WORDS.length);
-    }, 1800);
-    return () => clearInterval(id);
-  }, []);
-
-  // Tick the live clock every second.
-  useEffect(() => {
-    const tick = setInterval(() => setNow(new Date()), 1000);
-    return () => clearInterval(tick);
-  }, []);
-
   return (
     <main className="page">
       <div className="container">
         <header className="page__header">
           <RevealTitle>Metamorphosis</RevealTitle>
           <p className="page__subtitle">
-            A dependency-free morphing animation library
+            A morphing animation library for words, glyphs and icons.
           </p>
         </header>
 
         <div className="demos">
-          <section className="demo">
-            <div className="demo__container wide">
-              <span className="demo__label">Word Morph</span>
-              <TextMorph className="demo__text">{WORDS[wordIndex]}</TextMorph>
-            </div>
-          </section>
-
-          {/* Glyph morphing — the seconds' ones digit morphs via its font outline */}
-          <GlyphMorphDemo now={now} />
-
-          {/* Cascade — the live clock, rolling each second */}
-          <section className="demo">
-            <div className="demo__container wide">
-              <span className="demo__label">Cascade</span>
-              <TextMorph className="demo__text" {...cascadeProps()}>
-                {clockFormat(now)}
-              </TextMorph>
-            </div>
-          </section>
+          {/* State morph — an auto-cycling status pill: the label morphs
+              (TextMorph) while a bespoke SVG badge completes from a spinner into
+              a checkmark badge */}
+          <StatusDemo />
 
           {/* Cascade — step through calendar days, morphing the date label */}
           <CalendarStepper />
 
-          {/* Icon morphing — every icon is three lines; tap to morph */}
-          <IconMorphDemo />
+          {/* Glyph word — a pricing card whose digits reshape on toggle */}
+          <PricingDemo />
+
+          {/* Random number — cascade-rolls a new value on re-roll */}
+          <ScoreDemo />
+
+          {/* Icon morph — a copy-to-clipboard button morphing to a checkmark */}
+          <CopyMorphDemo />
+
+          {/* Icon morph — a button cycling through every bundled icon */}
+          <IconCycleDemo />
 
           {/* Install / usage — sits inside the wireframe grid as a final row */}
           <section className="page__install">
@@ -143,27 +146,322 @@ export default function App() {
 }
 
 /**
- * Reveals its text on mount with the same logic as the stepper morph — each
- * letter fades in and slides up from below, staggered left to right. The
- * letters occupy their final layout from the start (only opacity/transform
- * animate), so the title never shifts as it appears. Driven by CSS so the
- * easing stays smooth and the section reveals can be timed against it.
+ * Reveals its text on mount with a per-letter rise, then makes each letter
+ * interactive: hovering a letter morphs its font outline into a random glyph
+ * (GlyphMorph) and morphs it back on leave. The letters keep their final layout
+ * from the start (only opacity/transform animate on reveal), so the title never
+ * shifts. The accessible name stays the real word via `aria-label`.
  */
 function RevealTitle({ children }) {
   const title = String(children);
+  const chars = useMemo(() => [...title], [title]);
+  const [display, setDisplay] = useState(chars);
+
+  const setChar = (i, ch) =>
+    setDisplay((prev) => {
+      const next = prev.slice();
+      next[i] = ch;
+      return next;
+    });
+
   return (
     <h1 className="page__title" aria-label={title}>
-      {[...title].map((char, i) => (
-        <span
-          key={i}
-          aria-hidden="true"
-          className="page__title-char"
-          style={{ animationDelay: `${i * 0.04}s` }}
-        >
-          {char === " " ? " " : char}
-        </span>
-      ))}
+      {chars.map((char, i) =>
+        char === " " ? (
+          <span key={i} aria-hidden="true" className="page__title-char">
+            {" "}
+          </span>
+        ) : (
+          <span
+            key={i}
+            aria-hidden="true"
+            className="page__title-char"
+            style={{ animationDelay: `${i * 0.04}s` }}
+            onMouseEnter={() => setChar(i, randomLetterLike(char))}
+            onMouseLeave={() => setChar(i, char)}
+          >
+            <GlyphMorph
+              char={display[i]}
+              font={GLYPH_FONT}
+              color="#fff"
+              ease={{ stiffness: 320, damping: 26 }}
+            />
+          </span>
+        ),
+      )}
     </h1>
+  );
+}
+
+/**
+ * Status pill — a transaction status that auto-cycles between pending and
+ * approved. The label morphs (TextMorph) while a StatusBadge completes its ring
+ * from a spinning 3/4-circle spinner into a checkmark badge.
+ */
+function StatusDemo() {
+  const [i, setI] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(
+      () => setI((n) => (n + 1) % STATUS_STATES.length),
+      2600,
+    );
+    return () => clearInterval(id);
+  }, []);
+
+  const state = STATUS_STATES[i];
+
+  return (
+    <section className="demo demo--status">
+      <div className="demo__container wide">
+        <div className="status">
+          <span className="status__icon">
+            <StatusBadge confirmed={state.confirmed} />
+          </span>
+          {/* Word granularity so the shared "Transaction" segment persists and
+              slides intact between states, rather than reshuffling per-letter.
+              The default 400ms morph feels rushed against the ~2.6s state hold,
+              so slow it to let the words glide (same ease-out as the badge). */}
+          <TextMorph
+            className="status__label"
+            granularity="word"
+            duration={650}
+            ease="cubic-bezier(0.22, 1, 0.36, 1)"
+          >
+            {state.label}
+          </TextMorph>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * A success badge that doubles as a loading spinner. Two stacked states crossfade
+ * with a slight shrink on toggle: a spinning 3/4 arc while pending, and a solid
+ * circular badge with a checkmark cut out (SVG mask) whose curve draws on once
+ * confirmed. Only the inner glyphs scale — the svg box stays fixed, so there is
+ * no layout shift.
+ */
+function StatusBadge({ confirmed }) {
+  return (
+    <svg
+      className={`status-badge${confirmed ? " is-confirmed" : ""}`}
+      viewBox="0 0 24 24"
+      aria-hidden="true"
+    >
+      <defs>
+        {/* White keeps the disc; the black check stroke knocks a checkmark-shaped
+            hole out of it. Drawing the stroke on reveals the cutout as a curve. */}
+        <mask id="status-check-cutout">
+          <rect width="24" height="24" fill="white" />
+          <path
+            className="status-badge__check"
+            d="M7.5 12.5l3 3 5.5-6"
+            fill="none"
+            stroke="black"
+            strokeWidth="2.4"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </mask>
+      </defs>
+
+      {/* Spinner state — a spinning 3/4 arc, crossfading out on confirm. */}
+      <g className="status-badge__spinner">
+        <circle className="status-badge__arc" cx="12" cy="12" r="9" />
+      </g>
+
+      {/* Badge state — a solid disc with the checkmark cut out, crossfading in. */}
+      <g className="status-badge__badge">
+        <circle
+          className="status-badge__disc"
+          cx="12"
+          cy="12"
+          r="9"
+          mask="url(#status-check-cutout)"
+        />
+      </g>
+    </svg>
+  );
+}
+
+/**
+ * Pricing card — a Monthly·Yearly segmented toggle over a large price rendered
+ * with GlyphWord, so each digit reshapes its font outline as the plan changes.
+ */
+function PricingDemo() {
+  const [active, setActive] = useState(0);
+  const plan = PLANS[active];
+
+  return (
+    <section className="demo demo--pricing">
+      <div className="demo__container wide">
+        <div className="pricing">
+          <div className="pricing__price">
+            <GlyphWord
+              word={plan.price}
+              font={GLYPH_FONT}
+              color="var(--text-strong)"
+              ease={GLYPH_SPRING}
+            />
+            <span className="pricing__suffix">/mo</span>
+          </div>
+          <Tabs
+            items={PLANS}
+            active={active}
+            onChange={setActive}
+            ariaLabel="Billing period"
+            getLabel={(p) => p.label}
+          />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/**
+ * Random number — a large number rendered with TextMorph. Re-rolling picks a new
+ * value in 0–999 and the digits cascade-roll into place.
+ */
+function ScoreDemo() {
+  const [score, setScore] = useState(42);
+
+  const reroll = () =>
+    setScore((s) => {
+      let n;
+      do {
+        n = Math.floor(Math.random() * 1000);
+      } while (n === s);
+      return n;
+    });
+
+  return (
+    <section className="demo demo--score">
+      <div className="demo__container wide">
+        <div className="score">
+          <div className="score__value">
+            <TextMorph className="score__number" {...cascadeProps()}>
+              {String(score)}
+            </TextMorph>
+          </div>
+          <button type="button" className="score__button" onClick={reroll}>
+            Re-roll
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// Best-effort clipboard write. Prefers the async Clipboard API (secure contexts)
+// and falls back to a hidden-textarea + execCommand for insecure contexts like
+// http://<lan-ip> on a phone, where navigator.clipboard is unavailable.
+function copyText(text) {
+  if (navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).catch(fallbackCopy);
+  } else {
+    fallbackCopy();
+  }
+
+  function fallbackCopy() {
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = text;
+      ta.setAttribute("readonly", "");
+      ta.style.position = "fixed";
+      ta.style.opacity = "0";
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      document.body.removeChild(ta);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  }
+}
+
+/**
+ * Copy button — a glass pill pairing a copy-to-clipboard icon that morphs into a
+ * checkmark on click (IconMorph) with a label that morphs "copy" → "copied"
+ * (TextMorph), both reverting after a short beat.
+ */
+function CopyMorphDemo() {
+  const [copied, setCopied] = useState(false);
+  const resetTimer = useRef(null);
+
+  useEffect(() => () => clearTimeout(resetTimer.current), []);
+
+  const copy = () => {
+    // Fire the morph on every tap. The demo is about the morph, so the visual
+    // feedback must not hinge on the clipboard write — which throws in insecure
+    // contexts (e.g. viewing the dev server over http://<lan-ip> on a phone,
+    // where navigator.clipboard is undefined).
+    setCopied(true);
+    clearTimeout(resetTimer.current);
+    resetTimer.current = setTimeout(() => setCopied(false), 1600);
+    copyText("npm i github:olicarignan/metamorphosis");
+  };
+
+  return (
+    <section className="demo demo--copy">
+      <div className="demo__container wide">
+        <button
+          type="button"
+          className="copy-morph"
+          onClick={copy}
+          aria-label={copied ? "Copied" : "Copy install command"}
+        >
+          <IconMorph
+            name={copied ? "check" : "copy"}
+            size={20}
+            strokeWidth={2}
+            ease={GLYPH_SPRING}
+          />
+          {/* A hidden sizer holding the wider word pins the label slot's width,
+              so the centered pill never resizes (and re-centers) as the label
+              morphs and settles — which otherwise reads as a jump. */}
+          <span className="copy-morph__label">
+            <TextMorph className="copy-morph__text">
+              {copied ? "copied" : "copy"}
+            </TextMorph>
+          </span>
+        </button>
+      </div>
+    </section>
+  );
+}
+
+// Every bundled icon, resolved once — the cycle demo steps through these in order.
+const ICON_NAMES = iconNames();
+
+/**
+ * Icon gallery — a glass disc button that morphs through every bundled IconMorph
+ * icon in turn, wrapping back to the first at the end.
+ */
+function IconCycleDemo() {
+  const [index, setIndex] = useState(0);
+
+  const next = () => setIndex((i) => (i + 1) % ICON_NAMES.length);
+
+  return (
+    <section className="demo demo--icons">
+      <div className="demo__container wide">
+        <button
+          type="button"
+          className="icon-cycle"
+          onClick={next}
+          aria-label={`Next icon (${ICON_NAMES[index]})`}
+        >
+          <IconMorph
+            name={ICON_NAMES[index]}
+            size={32}
+            strokeWidth={2}
+            ease={GLYPH_SPRING}
+          />
+        </button>
+      </div>
+    </section>
   );
 }
 
@@ -350,15 +648,14 @@ function CopyButton({ text, label = "Copy", className = "" }) {
 
   useEffect(() => () => clearTimeout(resetTimer.current), []);
 
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      clearTimeout(resetTimer.current);
-      resetTimer.current = setTimeout(() => setCopied(false), 1500);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
+  const copy = () => {
+    // Show the copied state on every tap, independent of the clipboard write —
+    // which throws in insecure contexts (e.g. the dev server over http://<lan-ip>
+    // on a phone), leaving the button looking unresponsive.
+    setCopied(true);
+    clearTimeout(resetTimer.current);
+    resetTimer.current = setTimeout(() => setCopied(false), 1500);
+    copyText(text);
   };
 
   return (
@@ -457,91 +754,12 @@ function dayLabel(offset, date) {
 // Secondary weekday line — only the relative days show it (like the original).
 // Non-relative days morph to a blank line so the row keeps its height.
 function dayDetail(offset, date) {
-  if (Math.abs(offset) > 1) return " ";
+  if (Math.abs(offset) > 1) return " ";
   return date.toLocaleDateString("en-US", {
     weekday: "short",
     month: "short",
     day: "numeric",
   });
-}
-
-// Each icon is exactly three SVG lines, so any of these morphs smoothly into
-// the next. The arrows share one shape and only differ by rotation; the others
-// move points and collapse unused lines to the center.
-const ICON_SEQUENCE = [
-  "menu",
-  "close",
-  "plus",
-  "minus",
-  "equals",
-  "check",
-  "play",
-  "pause",
-  "arrow-up",
-  "arrow-right",
-  "arrow-down",
-  "arrow-left",
-  "chevron-down",
-];
-
-/**
- * Icon morph showcase. Tapping the button advances through the sequence; the
- * single three-line icon morphs from whichever shape it is into the next one.
- */
-function IconMorphDemo() {
-  const [i, setI] = useState(0);
-  const name = ICON_SEQUENCE[i];
-
-  return (
-    <section className="demo demo--icon">
-      <div className="demo__container wide">
-        <span className="demo__label">Icon Morph</span>
-        <div className="stepper">
-          <button
-            type="button"
-            className="stepper__button"
-            onClick={() => setI((n) => (n + 1) % ICON_SEQUENCE.length)}
-            aria-label={`Morph to next icon (currently ${name})`}
-          >
-            <IconMorph name={name} size={26} strokeWidth={2} />
-          </button>
-        </div>
-      </div>
-    </section>
-  );
-}
-
-// Suisse Intl Regular — the same WOFF2 the demo text renders in, so the morphing
-// glyph matches its neighbors' weight, size, and baseline. fontkit reads WOFF2
-// directly (bundled brotli); opentype.js could not.
-const GLYPH_FONT = "/fonts/SuisseIntl/Suisse%20Intl%20Regular.woff2";
-
-/**
- * Glyph morph showcase, driven by the same ticking clock as the cascade demo:
- * the time renders in the page font and every digit morphs in place — its font
- * outline reshaping into the next digit whenever it ticks — while the colons
- * stay static. Multiple numbers morphing throughout a word.
- *
- * The morph's subtle blur (peak amount, when it clears, and ramp-down
- * sharpness) is tuned via the GlyphWord `blur`/`blurEnd`/`blurCurve` props; the
- * library defaults are used here.
- */
-function GlyphMorphDemo({ now }) {
-  const time = clockFormat(now); // "HH:MM:SS"
-
-  return (
-    <section className="demo demo--glyph">
-      <div className="demo__container wide">
-        <span className="demo__label">Character Morph</span>
-        <GlyphWord
-          className="demo__text"
-          word={time}
-          font={GLYPH_FONT}
-          ease={{ stiffness: 180, damping: 22 }}
-        />
-      </div>
-    </section>
-  );
 }
 
 /**
@@ -560,7 +778,6 @@ function CalendarStepper() {
   return (
     <section className="demo demo--stepper">
       <div className="demo__container wide">
-        <span className="demo__label">Cascade</span>
         <div className="stepper">
           <button
             type="button"

@@ -221,7 +221,7 @@
     rgba(255, 255, 255, 0.3) 100%
   );
   --text-strong: rgba(255, 255, 255, 0.9);
-  --text-soft: rgba(255, 255, 255, 0.6);
+  --text-soft: rgba(255, 255, 255, 0.8);
   --glass-fill: #788d83;
   --glass-highlight: linear-gradient(180deg, #7a8c89 0%, #98a79f 100%);
   /* A soft drop shadow plus a beveled steel rim — light along the top/bottom
@@ -295,15 +295,9 @@ h6 {
 .page__install h2,
 .page__install h3,
 .install__tab-label,
-.demo__text,
-.demo__text [metamorphosis-item],
 .stepper__label,
 .stepper__label [metamorphosis-item] {
-  background-image: var(--text-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  color: white;
 }
 
 p {
@@ -333,13 +327,13 @@ a {
     font-style: normal;
     font-size: 3rem;
     font-feature-settings: "dlig" on;
-    letter-spacing: -0.04em;
+    letter-spacing: -0.0225em;
     font-weight: 400;
   }
 }
 
 .page__subtitle {
-  margin-top: 1.2rem;
+  margin-top: 0;
   font-size: 1.6rem;
   letter-spacing: -0.01em;
   color: var(--text-soft);
@@ -351,14 +345,14 @@ a {
    (same logic as the stepper morph). Letters keep their final layout — only
    opacity/transform animate — so the title never shifts as it appears. The
    per-letter delay is set inline; the easing is smooth (no bounce). */
+/* Each title letter is a white-filled GlyphMorph <svg> (color set in App.jsx);
+   the white text here covers the plain-text fallback shown while the font loads.
+   Hovering a letter morphs its outline into a same-cased random glyph (handled
+   in App.jsx). */
 .page__title-char {
   display: inline-block;
   white-space: pre;
-  background-image: var(--text-gradient);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  color: #fff;
   animation: title-rise 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
@@ -408,8 +402,17 @@ a {
 .demos > section:nth-of-type(5) {
   animation-delay: 1.75s;
 }
-.credits {
+.demos > section:nth-of-type(6) {
   animation-delay: 1.9s;
+}
+.demos > section:nth-of-type(7) {
+  animation-delay: 2.05s;
+}
+.demos > section:nth-of-type(8) {
+  animation-delay: 2.2s;
+}
+.credits {
+  animation-delay: 2.35s;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -454,58 +457,6 @@ a {
 
 .demo__container.wide {
   aspect-ratio: 16/9;
-}
-
-/* Small, subtle caption sitting just below the demo's text, as a subtitle. */
-.demo__label {
-  position: absolute;
-  top: calc(50% + 2.4rem);
-  left: 0;
-  right: 0;
-  text-align: center;
-  font-size: 1.2rem;
-  letter-spacing: -0.01em;
-  color: rgba(255, 255, 255, 0.35);
-}
-
-/* Icon morph demo only: a little extra breathing room below the button. */
-.demo--icon .demo__label {
-  top: calc(50% + 3.4rem);
-}
-
-/* GlyphMorph paints its outline with `fill: currentColor`, but `.demo__text`
-   sets `color: transparent` for the gradient-clip effect (which clips to text
-   glyphs, not to a replaced <svg>) — so the morphing digit would be invisible.
-   Paint this clock with a solid color so the morphing digit and the plain-text
-   digits around it share one visible fill. */
-.demo--glyph .demo__text {
-  background: none;
-  color: var(--text-soft);
-  -webkit-text-fill-color: var(--text-soft);
-}
-
-/* Stepper demo: the display is two rows (label + detail), so drop the caption
-   clear of the detail line instead of overlapping it. */
-.demo--stepper .demo__label {
-  top: calc(50% + 4.6rem);
-}
-
-.demo__hero,
-.demo__text {
-  font-family: var(--font-sans);
-  font-weight: 400;
-  letter-spacing: -0.03em;
-  line-height: 1;
-}
-
-.demo__hero {
-  font-size: clamp(4.8rem, 12vw, 9.6rem);
-  font-weight: 400;
-}
-
-.demo__text {
-  font-size: 2.625rem;
-  font-weight: 400;
 }
 
 /* Apple-style "liquid glass" gauge — a recessed frosted capsule with a lit fill
@@ -715,6 +666,319 @@ a {
   font-variant-numeric: tabular-nums;
 }
 
+/* ── Status pill (State Morph: Icon + Text) ──────────────────────────────── */
+
+.status {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1.2rem 1.6rem;
+  border-radius: 999px;
+  background: var(--glass-fill);
+  overflow: hidden;
+  box-shadow: var(--glass-shadow), var(--glass-bevel);
+}
+
+/* Frosted reflection pooling toward the bottom, matching the other surfaces. */
+.status::before {
+  content: "";
+  position: absolute;
+  left: 0.6rem;
+  right: 0.6rem;
+  top: 40%;
+  bottom: -3px;
+  border-radius: 999px;
+  background: var(--glass-highlight);
+  filter: blur(2.5px);
+  pointer-events: none;
+}
+
+/* Icon and label sit above the reflection. */
+.status > * {
+  position: relative;
+  z-index: 1;
+}
+
+.status__icon {
+  display: inline-flex;
+  color: #fff;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.18));
+}
+
+/* Spinner → success badge. One ring circle: a spinning 3/4 arc while pending,
+   completing into a full circular badge as the check draws in on confirm. */
+.status-badge {
+  width: 2.2rem;
+  height: 2.2rem;
+  overflow: visible;
+}
+
+/* The spinner and the check badge are stacked in the same fixed-size svg and
+   crossfade with a slight shrink on toggle. Only the inner glyphs scale
+   (transform-box: view-box, around the 24×24 centre), never the svg box, so
+   there is no layout shift. Timing echoes IconMorph's ease-out (400ms). */
+.status-badge__spinner,
+.status-badge__badge {
+  transform-box: view-box;
+  transform-origin: center;
+  transition:
+    opacity 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Spinner shown while pending; shrinks + fades out on confirm. */
+.status-badge__spinner {
+  opacity: 1;
+  transform: scale(1);
+}
+.status-badge.is-confirmed .status-badge__spinner {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+/* Badge shrunk + hidden while pending; grows + fades in on confirm. */
+.status-badge__badge {
+  opacity: 0;
+  transform: scale(0.8);
+}
+.status-badge.is-confirmed .status-badge__badge {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* The 3/4 arc spins continuously; rotate lives on the inner circle so it never
+   clashes with the crossfade scale on the wrapping group. */
+.status-badge__arc {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-dasharray: 56.55; /* 2π·9 */
+  stroke-dashoffset: 14.14; /* hide 1/4 → 3/4 arc */
+  transform-box: view-box;
+  transform-origin: center;
+  animation: badge-spin 0.8s linear infinite;
+}
+
+@keyframes badge-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.status-badge__disc {
+  fill: currentColor;
+}
+
+/* The checkmark cutout draws its curve on (stroke-dashoffset) as the badge
+   fades in. */
+.status-badge__check {
+  stroke-dasharray: 14;
+  stroke-dashoffset: 14;
+  transition: stroke-dashoffset 0.35s cubic-bezier(0.22, 1, 0.36, 1) 0.08s;
+}
+.status-badge.is-confirmed .status-badge__check {
+  stroke-dashoffset: 0;
+}
+
+.status__label {
+  font-family: var(--font-sans);
+  font-size: 1.8rem;
+  font-weight: 450;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .status-badge__arc {
+    animation: none;
+  }
+  .status-badge__spinner,
+  .status-badge__badge,
+  .status-badge__check {
+    transition: none;
+  }
+}
+
+/* ── Pricing card (Glyph Word) ───────────────────────────────────────────── */
+
+.pricing {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.8rem;
+}
+
+.pricing__price {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  font-size: 5.2rem;
+  color: var(--text-strong);
+}
+
+.pricing__suffix {
+  margin-left: 0.4rem;
+  font-size: 1.8rem;
+  letter-spacing: -0.01em;
+  color: var(--text-soft);
+}
+
+/* ── Review score (Glyph Morph) ──────────────────────────────────────────── */
+
+.score {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.8rem;
+}
+
+.score__value {
+  display: inline-flex;
+  align-items: baseline;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  letter-spacing: -0.02em;
+  line-height: 1;
+  font-size: 6.4rem;
+  color: var(--text-strong);
+}
+
+.score__button {
+  padding: 0.8rem 1.8rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--glass-fill);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 1.4rem;
+  font-weight: 450;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  box-shadow: var(--glass-shadow), var(--glass-bevel);
+  transition: transform 0.15s ease;
+}
+
+.score__button:active {
+  transform: scale(0.95);
+}
+
+/* ── Copy button (Icon Morph) ────────────────────────────────────────────── */
+
+/* Frosted glass pill pairing the copy→check IconMorph with its label (same glass
+   surface as the stepper/transport discs). */
+.copy-morph {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.9rem 1.8rem 0.9rem 1.5rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--glass-fill);
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: var(--glass-shadow), var(--glass-bevel);
+  transition: transform 0.15s ease;
+}
+
+.copy-morph::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 6px);
+  transform: translate(-50%, -50%);
+  width: 90%;
+  height: 72%;
+  border-radius: 999px;
+  background: var(--glass-highlight);
+  filter: blur(3px);
+  pointer-events: none;
+}
+
+.copy-morph > span {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.18));
+}
+
+/* Fixed-width label slot: the hidden sizer and the morphing text stack in one
+   grid cell, so the slot is always as wide as the longest word ("copied"). The
+   pill's width — and its centered position — then stay put while the label
+   morphs, instead of jumping when TextMorph settles to its final width. */
+.copy-morph__label {
+  display: inline-grid;
+  justify-items: start;
+  font-family: var(--font-sans);
+  font-size: 1.6rem;
+  font-weight: 450;
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+
+.copy-morph__label > * {
+  grid-area: 1 / 1;
+}
+
+.copy-morph__sizer {
+  visibility: hidden;
+}
+
+.copy-morph:active {
+  transform: scale(0.94);
+}
+
+/* ── Icon cycle (Icon Morph) ─────────────────────────────────────────────── */
+
+/* Frosted glass disc that morphs through every bundled icon on tap (same glass
+   surface as the copy pill / stepper discs). */
+.icon-cycle {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 6.4rem;
+  height: 6.4rem;
+  padding: 0;
+  border: none;
+  border-radius: 999px;
+  background: var(--glass-fill);
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  overflow: hidden;
+  box-shadow: var(--glass-shadow), var(--glass-bevel);
+  transition: transform 0.15s ease;
+}
+
+.icon-cycle::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 6px);
+  transform: translate(-50%, -50%);
+  width: 72%;
+  height: 72%;
+  border-radius: 999px;
+  background: var(--glass-highlight);
+  filter: blur(3px);
+  pointer-events: none;
+}
+
+.icon-cycle > span {
+  position: relative;
+  z-index: 1;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.18));
+}
+
+.icon-cycle:active {
+  transform: scale(0.94);
+}
+
 /* Frosted reflection — a blurred lighter sheet pooling toward the bottom of
    each glass surface (gradient #7a8c89 → #a3b2b0, vertical, layer-blur ≈ 2.5px). */
 .install__command::before,
@@ -734,8 +998,10 @@ a {
 /* On smaller viewports the otherwise-square demos take the wide aspect ratio
    while stacked in a single column. */
 @media (max-width: 700px) {
+  /* Taller cells on phones: 16/9 is too short at narrow widths, so give every
+     demo a 2/3 (portrait) box for more vertical breathing room around the morph. */
   .demo .demo__container {
-    aspect-ratio: 16/9;
+    aspect-ratio: 2/3;
   }
 
   /* Single column on narrow viewports, using more of the width — tighten the
@@ -1033,6 +1299,11 @@ a {
   top: 0.8rem;
   right: 0.8rem;
   z-index: 2;
+  /* Frosted backdrop blur instead of a solid fill: the chip stays transparent
+     while blurring the code behind it, so the icon reads clearly rather than
+     intersecting the text — matters most on touch, where there's no hover bg. */
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
 }
 
 .credits {
