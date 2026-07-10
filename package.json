@@ -1,6 +1,6 @@
 {
   "name": "@ocarignan/metamorphosis",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Morphing animation library — morphing text, line-drawn icons, and per-character font-outline glyphs. Framework-agnostic core + React adapters (text/icon are dependency-free; glyph morphing uses fontkit).",
   "license": "MIT",
   "author": "Olivier Carignan",

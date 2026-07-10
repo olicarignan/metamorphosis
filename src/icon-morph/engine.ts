@@ -36,13 +36,22 @@ function isCollapsed(l: LineDef): boolean {
 }
 
 function resolveState(d: IconDef): IconState {
-  const lines = d.lines.map((l) => ({
+  // Pad to MAX_LINES with collapsed (invisible) center points. Built-in and
+  // registered icons are already padded via `def()`, but inline icon defs
+  // passed straight to `update()` are not — and the engine renders a fixed
+  // MAX_LINES <line> elements, so a shorter def would leave `apply()` reading
+  // past the array. Padding here makes every code path safe and lets any icon
+  // morph cleanly into any other regardless of segment count.
+  const lines = d.lines.slice(0, MAX_LINES).map((l) => ({
     x1: l[0],
     y1: l[1],
     x2: l[2],
     y2: l[3],
     opacity: isCollapsed(l) ? 0 : 1,
   }));
+  while (lines.length < MAX_LINES) {
+    lines.push({ x1: CENTER, y1: CENTER, x2: CENTER, y2: CENTER, opacity: 0 });
+  }
   return { lines, rotation: d.rotation ?? 0 };
 }
 
