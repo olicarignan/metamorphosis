@@ -327,10 +327,12 @@ pnpm build      # tsup → dist/ (esm + cjs + d.ts)
 pnpm dev        # watch mode
 ```
 
-The `demo/` directory is a Vite app showcasing the morphers: cycling text,
-the cascade roll (a calendar stepper and a live clock), the line-drawn icon
-morph, a live clock whose seconds digit morphs its font outline (glyph morph),
-and copy-to-clipboard install/usage snippets that morph as you switch tabs.
+The `demo/` directory is a Vite app showcasing the morphers: an auto-cycling
+transaction status pill (text morph plus an SVG badge), a calendar-day stepper
+and a random-number re-roll (both using the cascade roll), the line-drawn icon
+morph cycling every bundled icon, a pricing card whose digits reshape their font
+outline on a billing toggle (glyph morph), a copy-to-clipboard button that morphs
+into a checkmark, and install/usage snippets that morph as you switch tabs.
 
 ```bash
 cd demo && pnpm install && pnpm dev
