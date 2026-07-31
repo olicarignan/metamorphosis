@@ -647,6 +647,7 @@ a {
   letter-spacing: -0.03em;
   line-height: 1;
   font-size: 2.625rem;
+  font-variant-numeric: tabular-nums;
 }
 
 /* Extra specificity so this beats the library's injected `[metamorphosis-root]
