@@ -93,10 +93,8 @@ export default function App() {
         </header>
 
         <div className="demos">
-          {/* State morph — an auto-cycling status pill: the label morphs
-              (TextMorph) while a bespoke SVG badge completes from a spinner into
-              a checkmark badge */}
-          <StatusDemo />
+          {/* Glyph word — a pricing card whose digits reshape on toggle */}
+          <PricingDemo />
 
           {/* Cascade — step through calendar days, morphing the date label */}
           <CalendarStepper />
@@ -104,8 +102,10 @@ export default function App() {
           {/* Icon morph — a button cycling through every bundled icon */}
           <IconCycleDemo />
 
-          {/* Glyph word — a pricing card whose digits reshape on toggle */}
-          <PricingDemo />
+          {/* State morph — an auto-cycling status pill: the label morphs
+              (TextMorph) while a bespoke SVG badge completes from a spinner into
+              a checkmark badge */}
+          <StatusDemo />
 
           {/* Random number — cascade-rolls a new value on re-roll */}
           <ScoreDemo />
